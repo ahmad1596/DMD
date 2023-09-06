@@ -1,4 +1,5 @@
 import serial
+import time
 
 class SuperKCompactControl:
     def __init__(self, module_type='74', serial_port=None):
@@ -22,10 +23,6 @@ class SuperKCompactControl:
                     self.serial_port = None
             except Exception as e:
                 print(f'Error connecting to COM port {serial_port}: {str(e)}')
-    
-        if self.serial_port is None:
-            print('Failed to connect to any COM port.')
-
 
     def disconnect(self):
         if self.serial_port:
@@ -108,6 +105,15 @@ class SuperKCompactControl:
 def main():
     laser = SuperKCompactControl()
     laser.connect()
+    if laser.set_emission(on=True):
+        print("Laser is turned on")
+    else:
+        print("Failed to turn on the laser")
+    time.sleep(2)
+    if laser.set_emission(on=False):
+        print("Laser is turned off")
+    else:
+        print("Failed to turn off the laser")
     laser.disconnect()
 if __name__ == "__main__":
     main()
