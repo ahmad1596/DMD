@@ -1,4 +1,5 @@
 import serial
+from NKTP_DLL import registerWriteU8, RegisterResultTypes
 import time
 
 class SuperKCompactControl:
@@ -24,18 +25,6 @@ class SuperKCompactControl:
             except Exception as e:
                 print(f'Error connecting to COM port {serial_port}: {str(e)}')
 
-    def disconnect(self):
-        if self.serial_port:
-            self.serial_port.close()
-            self.serial_port = None
-            print('SuperK Compact disconnected')
-
-    def set_timeout(self, timeout):
-        self.timeout = timeout
-
-    def get_timeout(self):
-        return self.timeout
-
     def send_command(self, command):
         if self.serial_port:
             self.serial_port.write(bytes.fromhex(command))
@@ -43,77 +32,114 @@ class SuperKCompactControl:
             return response
         return None
 
-    def get_supply_voltage(self):
-        response = self.send_command('74001A0000')
-        if response and response.startswith('74001A'):
-            voltage_hex = response[6:10]
-            voltage = int(voltage_hex, 16) * 0.001
-            return voltage
-        return None
+    def set_supply_voltage(self, voltage_mV):
+        result = registerWriteU8('COM3', 1, 0x1A, voltage_mV, -1)
+        print('Setting supply voltage:', RegisterResultTypes(result))
 
-    def get_heat_sink_temperature(self):
-        response = self.send_command('74001B0000')
-        if response and response.startswith('74001B'):
-            temperature_hex = response[6:10]
-            temperature = int(temperature_hex, 16) * 0.1
-            return temperature
-        return None
+    def set_heat_sink_temperature(self, temperature_tenths_C):
+        result = registerWriteU8('COM3', 1, 0x1B, temperature_tenths_C, -1)
+        print('Setting heat sink temperature:', RegisterResultTypes(result))
 
-    def get_optical_pulse_frequency(self):
-        response = self.send_command('7400710000')
-        if response and response.startswith('740071'):
-            frequency_hex = response[6:14]
-            frequency = int(frequency_hex, 16) * 0.001
-            return frequency
-        return None
+    def set_trig_level(self, level_mV):
+        result = registerWriteU8('COM3', 1, 0x24, level_mV, -1)
+        print('Setting trig level:', RegisterResultTypes(result))
 
-    def get_display_text(self):
-        response = self.send_command('7400780000')
-        if response and response.startswith('740078'):
-            text_hex = response[6:]
-            text = bytes.fromhex(text_hex).decode('utf-8')
-            return text
-        return None
+    def set_display_backlight(self, level_percent):
+        result = registerWriteU8('COM3', 1, 0x26, level_percent, -1)
+        print('Setting display backlight level:', RegisterResultTypes(result))
 
-    def get_power_readout(self):
-        response = self.send_command('74007A0000')
-        if response and response.startswith('74007A'):
-            power = int(response[6:8], 16)
-            return power
-        return None
-
-    def set_emission(self, on=True):
-        emission_value = '01' if on else '00'
-        response = self.send_command(f'740030{emission_value}00')
-        return response and response.startswith('74')
+    def set_emission_status(self, status):
+        result = registerWriteU8('COM3', 1, 0x30, status, -1)
+        if status == 1:
+            print('Setting emission ON:', RegisterResultTypes(result))
+        elif status == 0:
+            print('Setting emission OFF:', RegisterResultTypes(result))
+        else:
+            print('Invalid emission status:', status)
 
     def set_trig_mode(self, mode):
-        response = self.send_command(f'740031{mode:02X}00')
-        return response and response.startswith('74')
+        result = registerWriteU8('COM3', 1, 0x31, mode, -1)
+        print('Setting trig mode:', RegisterResultTypes(result))
 
     def set_interlock(self, interlock_value):
-        response = self.send_command(f'740032{interlock_value:04X}')
-        return response and response.startswith('74')
+        result = registerWriteU8('COM3', 1, 0x32, interlock_value, -1)
+        print('Setting interlock:', RegisterResultTypes(result))
 
-    def get_status(self):
-        response = self.send_command('7400660000')
-        if response and response.startswith('740066'):
-            status_bits = response[6:]
-            return status_bits
-        return None
+    def set_internal_pulse_frequency(self, frequency_Hz):
+        result = registerWriteU8('COM3', 1, 0x33, frequency_Hz, -1)
+        print('Setting internal pulse frequency:', RegisterResultTypes(result))
 
+    def set_burst_pulses(self, pulses):
+        result = registerWriteU8('COM3', 1, 0x34, pulses, -1)
+        print('Setting burst pulses:', RegisterResultTypes(result))
+
+    def set_watchdog_interval(self, interval_seconds):
+        result = registerWriteU8('COM3', 1, 0x35, interval_seconds, -1)
+        print('Setting watchdog interval:', RegisterResultTypes(result))
+
+    def set_internal_pulse_frequency_limit(self, limit_Hz):
+        result = registerWriteU8('COM3', 1, 0x36, limit_Hz, -1)
+        print('Setting internal pulse frequency limit:', RegisterResultTypes(result))
+
+    def set_power_level(self, power_percent):
+        result = registerWriteU8('COM3', 1, 0x3E, power_percent, -1)
+        print('Setting power level:', RegisterResultTypes(result))
+
+    def get_status_bits(self):
+        result = registerWriteU8('COM3', 1, 0x66, 0, -1)
+        print('Getting status bits:', RegisterResultTypes(result))
+
+    def get_optical_pulse_frequency(self):
+        result = registerWriteU8('COM3', 1, 0x71, 0, -1)
+        print('Getting optical pulse frequency:', RegisterResultTypes(result))
+
+    def get_actual_internal_trig_frequency(self):
+        result = registerWriteU8('COM3', 1, 0x75, 0, -1)
+        print('Getting actual internal trig frequency:', RegisterResultTypes(result))
+
+    def get_display_text(self):
+        result = registerWriteU8('COM3', 1, 0x78, 0, -1)
+        print('Getting display text:', RegisterResultTypes(result))
+
+    def get_power_level(self):
+        result = registerWriteU8('COM3', 1, 0x7A, 0, -1)
+        print('Getting power level:', RegisterResultTypes(result))
+
+    def get_user_area(self):
+        result = registerWriteU8('COM3', 1, 0x8D, 0, -1)
+        print('Getting user area:', RegisterResultTypes(result))
+
+    def disconnect(self):
+        if self.serial_port:
+            self.serial_port.close()
+            self.serial_port = None
+            print('SuperK Compact disconnected')
 def main():
     laser = SuperKCompactControl()
     laser.connect()
-    if laser.set_emission(on=True):
-        print("Laser is turned on")
-    else:
-        print("Failed to turn on the laser")
+    laser.set_emission_status(1)
     time.sleep(2)
-    if laser.set_emission(on=False):
-        print("Laser is turned off")
-    else:
-        print("Failed to turn off the laser")
+    laser.set_emission_status(0)
+    laser.set_supply_voltage(3300) 
+    laser.set_heat_sink_temperature(250) 
+    laser.set_trig_level(2000)
+    laser.set_display_backlight(50)
+    laser.set_trig_mode(1)
+    laser.set_interlock(2)
+    laser.set_internal_pulse_frequency(1000)
+    laser.set_burst_pulses(10)
+    laser.set_watchdog_interval(60)
+    laser.set_internal_pulse_frequency_limit(5000)
+    laser.set_power_level(75)
+
+    laser.get_status_bits()
+    laser.get_optical_pulse_frequency() 
+    laser.get_actual_internal_trig_frequency()
+    laser.get_display_text() 
+    laser.get_power_level()
+    laser.get_user_area()
+
     laser.disconnect()
+
 if __name__ == "__main__":
     main()
