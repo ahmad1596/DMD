@@ -1,3 +1,4 @@
+# Author: Ahmad Azizan (aaaba2@cam.ac.uk)
 import serial
 from NKTP_DLL import registerWriteU8, RegisterResultTypes
 import time
@@ -31,14 +32,6 @@ class SuperKCompactControl:
             response = self.serial_port.read(128).hex()
             return response
         return None
-
-    def set_supply_voltage(self, voltage_mV):
-        result = registerWriteU8('COM3', 1, 0x1A, voltage_mV, -1)
-        print('Setting supply voltage:', RegisterResultTypes(result))
-
-    def set_heat_sink_temperature(self, temperature_tenths_C):
-        result = registerWriteU8('COM3', 1, 0x1B, temperature_tenths_C, -1)
-        print('Setting heat sink temperature:', RegisterResultTypes(result))
 
     def set_trig_level(self, level_mV):
         result = registerWriteU8('COM3', 1, 0x24, level_mV, -1)
@@ -77,69 +70,44 @@ class SuperKCompactControl:
         result = registerWriteU8('COM3', 1, 0x35, interval_seconds, -1)
         print('Setting watchdog interval:', RegisterResultTypes(result))
 
-    def set_internal_pulse_frequency_limit(self, limit_Hz):
-        result = registerWriteU8('COM3', 1, 0x36, limit_Hz, -1)
-        print('Setting internal pulse frequency limit:', RegisterResultTypes(result))
-
     def set_power_level(self, power_percent):
         result = registerWriteU8('COM3', 1, 0x3E, power_percent, -1)
         print('Setting power level:', RegisterResultTypes(result))
-
-    def get_status_bits(self):
-        result = registerWriteU8('COM3', 1, 0x66, 0, -1)
-        print('Getting status bits:', RegisterResultTypes(result))
-
-    def get_optical_pulse_frequency(self):
-        result = registerWriteU8('COM3', 1, 0x71, 0, -1)
-        print('Getting optical pulse frequency:', RegisterResultTypes(result))
-
-    def get_actual_internal_trig_frequency(self):
-        result = registerWriteU8('COM3', 1, 0x75, 0, -1)
-        print('Getting actual internal trig frequency:', RegisterResultTypes(result))
-
-    def get_display_text(self):
-        result = registerWriteU8('COM3', 1, 0x78, 0, -1)
-        print('Getting display text:', RegisterResultTypes(result))
-
-    def get_power_level(self):
-        result = registerWriteU8('COM3', 1, 0x7A, 0, -1)
-        print('Getting power level:', RegisterResultTypes(result))
-
-    def get_user_area(self):
-        result = registerWriteU8('COM3', 1, 0x8D, 0, -1)
-        print('Getting user area:', RegisterResultTypes(result))
-
+    
+    def configure_laser(laser):
+        laser.set_interlock(2)
+        laser.set_watchdog_interval(0)
+        laser.set_display_backlight(100)
+        laser.set_power_level(100) 
+    
+    def set_trigger_parameters(self):
+        self.set_trig_level(2000)
+        self.set_trig_mode(0)
+        self.set_internal_pulse_frequency(1000)
+        self.set_burst_pulses(10)
+        
+    def set_emission_sequence(self):
+        self.set_emission_status(1)
+        time.sleep(5)
+        self.set_emission_status(0)
+        
     def disconnect(self):
         if self.serial_port:
             self.serial_port.close()
             self.serial_port = None
             print('SuperK Compact disconnected')
+            
 def main():
     laser = SuperKCompactControl()
-    laser.connect()
-    laser.set_emission_status(1)
-    time.sleep(2)
-    laser.set_emission_status(0)
-    laser.set_supply_voltage(3300) 
-    laser.set_heat_sink_temperature(250) 
-    laser.set_trig_level(2000)
-    laser.set_display_backlight(50)
-    laser.set_trig_mode(1)
-    laser.set_interlock(2)
-    laser.set_internal_pulse_frequency(1000)
-    laser.set_burst_pulses(10)
-    laser.set_watchdog_interval(60)
-    laser.set_internal_pulse_frequency_limit(5000)
-    laser.set_power_level(75)
-
-    laser.get_status_bits()
-    laser.get_optical_pulse_frequency() 
-    laser.get_actual_internal_trig_frequency()
-    laser.get_display_text() 
-    laser.get_power_level()
-    laser.get_user_area()
-
-    laser.disconnect()
+    try:
+        laser.connect()
+        laser.configure_laser()
+        laser.set_trigger_parameters()
+        laser.set_emission_sequence()
+    except Exception as e:
+        print("An error occurred:", str(e))
+    finally:
+        laser.disconnect()
 
 if __name__ == "__main__":
     main()
