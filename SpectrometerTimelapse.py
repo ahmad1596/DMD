@@ -3,6 +3,7 @@
 Created on Mon Apr 18 11:37:31 2016
 
 @author: Ana Andres
+@modified: Alex Gentleman
 """
 
 import nplab
@@ -10,6 +11,19 @@ from nplab.instrument.spectrometer.seabreeze import OceanOpticsSpectrometer
 import nplab.instrument.spectrometer.seabreeze as seabreeze
 from traits.api import HasTraits, Float, Int, String, Button, Bool
 from traitsui.api import View, Group, HGroup, VGroup, Item
+
+
+
+
+
+
+
+
+
+
+
+
+
 import time
 from nplab.utils.thread_utils import locked_action, background_action
 import threading
@@ -29,6 +43,7 @@ class SpectrometerTimelapse(nplab.instrument.Instrument, HasTraits):
     
     traits_view = View(VGroup(
                              HGroup(
+
                                  VGroup(
                                        Item("group_name", label = "Group Name"), 
                                        Item("number_of_spectra", label = "Number of Spectra"), 
@@ -51,7 +66,7 @@ class SpectrometerTimelapse(nplab.instrument.Instrument, HasTraits):
         "Making a new timelapse GUI"
         super(SpectrometerTimelapse,self).__init__() # initialise the parent class
         self.spectrometer = spectrometer
-        print ("New timelapse GUI.")
+        print("New timelapse GUI.")
 
     def _button_start_fired(self):
         """This is called when "button_start" is clicked."""
@@ -91,8 +106,8 @@ class SpectrometerTimelapse(nplab.instrument.Instrument, HasTraits):
                 ds.attrs.create("information", self.info_string)
                 datagroup.file.flush()
                 N += 1
-                print ("Spectra %d of %d recorded") % (N,self.number_of_spectra)
-            print ("Done!\n")
+                print(("Spectra %d of %d recorded") % (N,self.number_of_spectra))
+            print("Done!\n")
         finally:
             self.taking_spectra = False
         
@@ -114,11 +129,10 @@ if __name__ == "__main__":
                     timelapse,
                     ])
     except seabreeze.OceanOpticsError as error:
-        print ("An error occurred with the spectrometer: %s") % error
+        print("An error occurred with the spectrometer: %s") % error
     finally:
         try:
             seabreeze.shutdown_seabreeze()
         except:  # of course, if there's no spectrometer this will fail, hence the error handling
-            print ("""The spectrometer did not reset nicely.""")
+            print("""The spectrometer did not reset nicely.""")
         
-
