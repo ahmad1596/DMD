@@ -183,13 +183,19 @@ def normalize_spectrum_fiber(data_directory, wavelengths, spectrum_with_fiber_fi
 
 def normalize_power():
     power_measurement_wavelength = 550
+    background_input_power_mW = float(input("Enter the background input power in milliwatts: "))
     input_power_mW = float(input("Enter the input power in milliwatts: "))
+    background_input_power_uW = background_input_power_mW * 1000  
+    input_power_uW = input_power_mW * 1000
+    background_output_power_uW = float(input("Enter the background output power in microwatts: "))
     output_power_uW = float(input("Enter the output power in microwatts: "))
-    input_power_uW = input_power_mW * 1000  # Convert milliwatts to microwatts
-    power_percentage = (output_power_uW * 100) / input_power_uW
+    normalized_input_power_uW = input_power_uW - background_input_power_uW
+    normalized_output_power_uW = output_power_uW - background_output_power_uW
+    power_percentage = (normalized_output_power_uW * 100) / normalized_input_power_uW
     print(f"Wavelength at {power_measurement_wavelength} nm")
     print(f"Normalized Power Percentage: {power_percentage:.2f}%")
     return power_percentage
+
 
 def calculate_normalized_spectral_power_transmission(data_directory, wavelengths, power_percentage):
     current_date = time.strftime('%Y-%m-%d')
