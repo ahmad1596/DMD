@@ -129,7 +129,7 @@ def record_or_load_spectrum_without_fiber(spectrometer, data_directory, time_int
             print(f"Integration time for background without fiber recording: {integration_time_ms} ms")
             spectrum_without_fiber, spectrum_without_fiber_timestamps = record_spectra(spectrometer, time_interval_seconds, integration_time_ms, time_background, avg_background_without_fiber)
             avg_spectrum_without_fiber = calculate_average_spectra([spectrum[1] for spectrum in spectrum_without_fiber])
-            save_data_to_hdf5(spectrum_without_fiber_averaged_filename, {"wavelengths": spectrometer.wavelengths(), "intensities": avg_spectrum_without_fiber})
+            save_data_to_hdf5(spectrum_without_fiber_averaged_filename, {"wavelengths": spectrometer.wavelengths(), "averaged_intensities": avg_spectrum_without_fiber})
             print(f"Spectrum without fiber recorded and saved with Integration Time={integration_time_ms} ms")
         else:
             print(f"Using the existing spectrum without fiber (Integration Time={integration_time_ms} ms.)")
@@ -187,7 +187,7 @@ def calculate_and_save_normalized_spectrum(spectrum_with_fiber_averaged_filename
          h5py.File(spectrum_without_fiber_averaged_filename, "r") as file_no_fiber:
         wavelengths_fiber = file_fiber["wavelengths"][:]
         intensities_fiber = file_fiber["averaged_intensities"][:]
-        intensities_no_fiber = file_no_fiber["intensities"][:]
+        intensities_no_fiber = file_no_fiber["averaged_intensities"][:]
         normalized_intensities = intensities_fiber / intensities_no_fiber
         normalized_averaged_spectrum_filename = spectrum_with_fiber_averaged_filename.replace("averaged_spectrum_with_fiber", "normalized_averaged_spectrum")        
         save_data_to_hdf5(normalized_averaged_spectrum_filename, {"wavelengths": wavelengths_fiber, "normalized_intensities": normalized_intensities})
