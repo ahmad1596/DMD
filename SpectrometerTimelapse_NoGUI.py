@@ -40,7 +40,7 @@ def find_and_initialize_spectrometer():
 
 def get_measurement_settings():
     time_interval_seconds = 1
-    number_of_spectra = 1
+    number_of_spectra = 10
     integration_time_ms = 10
     total_duration_seconds = number_of_spectra * (time_interval_seconds + integration_time_ms / 1000)
     time_background = total_duration_seconds
@@ -123,7 +123,7 @@ def record_or_load_spectrum_without_fiber(spectrometer, data_directory, time_int
     try:
         spectrum_without_fiber_filename, spectrum_without_fiber_averaged_filename = generate_filenames_without_fiber(data_directory, integration_time_ms)
         if not file_exists(spectrum_without_fiber_averaged_filename):
-            input(f"Remove the fiber, block the laser beam, and press Enter when ready to record the spectrum without fiber (Integration Time={integration_time_ms} ms)...")
+            input(f"Remove the fiber, block the laser beam, and press Enter when ready to record the spectrum without fiber (Integration Time={integration_time_ms} ms)")
             background_without_fiber_spectra, background_without_fiber_timestamps = record_spectra_background(spectrometer, time_interval_seconds, integration_time_ms, time_background)
             avg_background_without_fiber = calculate_average_spectra([spectrum[1] for spectrum in background_without_fiber_spectra])
             print(f"Integration time for background without fiber recording: {integration_time_ms} ms")
