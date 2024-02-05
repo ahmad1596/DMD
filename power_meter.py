@@ -27,7 +27,7 @@ class USBTMC:
         self.instrument.close()
 
 class PM16(USBTMC):
-    def __init__(self, device, initial_wavelength=785):
+    def __init__(self, device, initial_wavelength=400):
         super().__init__(device)
         self.set_wavelengths([initial_wavelength])
         print("Current wavelength: {:.0f} nm".format(initial_wavelength))
@@ -108,11 +108,11 @@ def collect_measurement_data(power_meter, num_readings=10):
     wavelengths = list(range(int(start_wavelength), int(end_wavelength) + 1, wavelength_step))
     incident_bg_powers = []
     incident_raw_powers = []
-    reflected_bg_powers = []
-    reflected_raw_powers = []
+    transmitted_bg_powers = []
+    transmitted_raw_powers = []
     corrected_incident_powers = []
-    corrected_reflected_powers = []
     corrected_transmitted_powers = []
+    corrected_reflected_powers = []
 
     for wavelength in wavelengths:
         power_meter.set_wavelengths([wavelength])
@@ -132,19 +132,19 @@ def collect_measurement_data(power_meter, num_readings=10):
 
     power_meter.set_wavelengths(wavelengths)
     time.sleep(1.0)
-    user_press_enter("Reflected background")
+    user_press_enter("Transmitted background")
     for wavelength in wavelengths:
-        print(f"Reflected Background at {wavelength} nm")
-        reflected_bg_power = measure_and_get_avg_power(power_meter, num_readings)
-        reflected_bg_powers.append(reflected_bg_power)
+        print(f"Transmitted Background at {wavelength} nm")
+        transmitted_bg_power = measure_and_get_avg_power(power_meter, num_readings)
+        transmitted_bg_powers.append(transmitted_bg_power)
 
     power_meter.set_wavelengths(wavelengths)
     time.sleep(1.0)
-    user_press_enter("Reflected raw")
+    user_press_enter("Transmitted raw")
     for wavelength in wavelengths:
-        print(f"Reflected Raw at {wavelength} nm")
-        reflected_raw_power = measure_and_get_avg_power(power_meter, num_readings)
-        reflected_raw_powers.append(reflected_raw_power)
+        print(f"Transmitted Raw at {wavelength} nm")
+        transmitted_raw_power = measure_and_get_avg_power(power_meter, num_readings)
+        transmitted_raw_powers.append(transmitted_raw_power)
 
     power_meter.set_wavelengths(wavelengths)
     time.sleep(1.0)
@@ -152,33 +152,33 @@ def collect_measurement_data(power_meter, num_readings=10):
     for wavelength in wavelengths:
         corrected_incident_power = abs(incident_raw_power - incident_bg_power)
         corrected_incident_powers.append(corrected_incident_power)
-        corrected_reflected_power = abs(reflected_raw_power - reflected_bg_power)
-        corrected_reflected_powers.append(corrected_reflected_power)
-        corrected_transmitted_power = abs(corrected_incident_power - corrected_reflected_power)
+        corrected_transmitted_power = abs(transmitted_raw_power - transmitted_bg_power)
         corrected_transmitted_powers.append(corrected_transmitted_power)
+        corrected_reflected_power = abs(corrected_incident_power - corrected_transmitted_power)
+        corrected_reflected_powers.append(corrected_reflected_power)
 
     return (
         incident_bg_powers,
         incident_raw_powers,
-        reflected_bg_powers,
-        reflected_raw_powers,
+        transmitted_bg_powers,
+        transmitted_raw_powers,
         corrected_incident_powers,
-        corrected_reflected_powers,
         corrected_transmitted_powers,
+        corrected_reflected_powers,
         wavelengths
     )
 
-def plot_selected_measurements(wavelengths, incident_bg_powers, incident_raw_powers, reflected_bg_powers, reflected_raw_powers, corrected_incident_powers, corrected_reflected_powers, corrected_transmitted_powers):
+def plot_selected_measurements(wavelengths, incident_bg_powers, incident_raw_powers, transmitted_bg_powers, transmitted_raw_powers, corrected_incident_powers, corrected_transmitted_powers, corrected_reflected_powers):
     fig, ax = plt.subplots()
     fig.set_size_inches(10, 8)
     fig.set_dpi(600)
     ax.plot(wavelengths, incident_bg_powers, marker='o', label="Background Incident")
-    ax.plot(wavelengths, reflected_bg_powers, marker='o', label="Background Transmitted")
+    ax.plot(wavelengths, transmitted_bg_powers, marker='o', label="Background Transmitted")
     ax.plot(wavelengths, incident_raw_powers, marker='o', label="Uncorrected Incident")
-    ax.plot(wavelengths, reflected_raw_powers, marker='o', label="Uncorrected Transmitted")
+    ax.plot(wavelengths, transmitted_raw_powers, marker='o', label="Uncorrected Transmitted")
     ax.plot(wavelengths, corrected_incident_powers, marker='o', label="Corrected Incident")
-    ax.plot(wavelengths, corrected_reflected_powers, marker='o', label="Corrected Transmitted")
-    ax.plot(wavelengths, corrected_transmitted_powers, marker='o', label="Corrected Reflected")
+    ax.plot(wavelengths, corrected_transmitted_powers, marker='o', label="Corrected Transmitted")
+    ax.plot(wavelengths, corrected_reflected_powers, marker='o', label="Corrected Reflected")
     ax.set_xlabel("Wavelength (nm)", fontsize=14, fontweight="bold")
     ax.set_ylabel("Power (uW)", fontsize=14, fontweight="bold")
     ax.tick_params(axis="both", which="major", labelsize=12, direction="in")
@@ -187,16 +187,16 @@ def plot_selected_measurements(wavelengths, incident_bg_powers, incident_raw_pow
     plt.title("Selected Power Measurements", fontsize=16, fontweight="bold")
     plt.show()
 
-def plot_normalized_measurements(wavelengths, corrected_incident_powers, corrected_reflected_powers, corrected_transmitted_powers):
+def plot_normalized_measurements(wavelengths, corrected_incident_powers, corrected_transmitted_powers, corrected_reflected_powers):
     normalized_incident = [(power / incident) * 100 for incident, power in zip(corrected_incident_powers, corrected_incident_powers)]
-    normalized_reflected = [(reflected / incident) * 100 for incident, reflected in zip(corrected_incident_powers, corrected_reflected_powers)]
     normalized_transmitted = [(transmitted / incident) * 100 for incident, transmitted in zip(corrected_incident_powers, corrected_transmitted_powers)]
+    normalized_reflected = [(reflected / incident) * 100 for incident, reflected in zip(corrected_incident_powers, corrected_reflected_powers)]
     fig, ax = plt.subplots()
     fig.set_size_inches(10, 8)
     fig.set_dpi(600)
     ax.plot(wavelengths, normalized_incident, marker='o', label="Normalized Corrected Incident")
-    ax.plot(wavelengths, normalized_reflected, marker='o', label="Normalized Corrected Transmitted")
-    ax.plot(wavelengths, normalized_transmitted, marker='o', label="Normalized Corrected Reflected")
+    ax.plot(wavelengths, normalized_transmitted, marker='o', label="Normalized Corrected Transmitted")
+    ax.plot(wavelengths, normalized_reflected, marker='o', label="Normalized Corrected Reflected")
     ax.set_xlabel("Wavelength (nm)", fontsize=14, fontweight="bold")
     ax.set_ylabel("Normalized Power (%)", fontsize=14, fontweight="bold")
     ax.tick_params(axis="both", which="major", labelsize=12, direction="in")
@@ -207,18 +207,18 @@ def plot_normalized_measurements(wavelengths, corrected_incident_powers, correct
 
 def main():
     instrument_visa_resource = "USB0::0x1313::0x807B::190704312::INSTR"
-    initial_wavelength = 520
+    initial_wavelength = 440
     power_meter = PM16(instrument_visa_resource, initial_wavelength)
     try:
         print("Instrument identification:", power_meter.getName())
         (
             incident_bg_powers,
             incident_raw_powers,
-            reflected_bg_powers,
-            reflected_raw_powers,
+            transmitted_bg_powers,
+            transmitted_raw_powers,
             corrected_incident_powers,
-            corrected_reflected_powers,
             corrected_transmitted_powers,
+            corrected_reflected_powers,
             wavelengths
         ) = collect_measurement_data(power_meter, num_readings=10)
 
@@ -226,27 +226,27 @@ def main():
             wavelengths,
             incident_bg_powers,
             incident_raw_powers,
-            reflected_bg_powers,
-            reflected_raw_powers,
+            transmitted_bg_powers,
+            transmitted_raw_powers,
             corrected_incident_powers,
-            corrected_reflected_powers,
             corrected_transmitted_powers,
+            corrected_reflected_powers,
         )
         plot_normalized_measurements(
             wavelengths,
             corrected_incident_powers,
-            corrected_reflected_powers,
             corrected_transmitted_powers,
+            corrected_reflected_powers,
         )
 
         print("\nAverage Power Values:")
         print("  Incident Background: {:.4f} uW".format(sum(incident_bg_powers) / len(incident_bg_powers)))
         print("  Incident Raw: {:.4f} uW".format(sum(incident_raw_powers) / len(incident_raw_powers)))
-        print("  Transmitted Background: {:.4f} uW".format(sum(reflected_bg_powers) / len(reflected_bg_powers)))
-        print("  Transmitted Raw: {:.4f} uW".format(sum(reflected_raw_powers) / len(reflected_raw_powers)))
+        print("  Transmitted Background: {:.4f} uW".format(sum(transmitted_bg_powers) / len(transmitted_bg_powers)))
+        print("  Transmitted Raw: {:.4f} uW".format(sum(transmitted_raw_powers) / len(transmitted_raw_powers)))
         print("  Corrected Incident: {:.4f} uW".format(sum(corrected_incident_powers) / len(corrected_incident_powers)))
-        print("  Corrected Transmitted: {:.4f} uW".format(sum(corrected_reflected_powers) / len(corrected_reflected_powers)))
-        print("  Corrected Reflected: {:.4f} uW".format(sum(corrected_transmitted_powers) / len(corrected_transmitted_powers)))
+        print("  Corrected Transmitted: {:.4f} uW".format(sum(corrected_transmitted_powers) / len(corrected_transmitted_powers)))
+        print("  Corrected Reflected: {:.4f} uW".format(sum(corrected_reflected_powers) / len(corrected_reflected_powers)))
 
     except Exception as e:
         print("An error occurred:", e)
