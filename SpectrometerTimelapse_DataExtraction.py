@@ -99,7 +99,7 @@ def plot_normalized_power_spectrum(filename):
     fig.set_dpi(600)
     ax.plot(wavelengths, normalized_power_spectrum, label="Normalized Power Spectrum (%)")
     ax.set_xlabel("Wavelength (nm)", fontsize=14, fontweight="bold")
-    ax.set_ylabel("Normalized Spectral Power Transmission (%)", fontsize=14, fontweight="bold")
+    ax.set_ylabel("Normalized Power Spectrum (%)", fontsize=14, fontweight="bold")
     ax.tick_params(axis="both", which="major", labelsize=12, direction="in")
     ax.grid(color="gray", linestyle="--", linewidth=0.5)
     ax.legend(loc="upper right", fontsize=8)
@@ -214,22 +214,22 @@ def main():
         plot_averaged_spectrum_without_fiber(filename_averaged_spectra_without_fiber)
         print("Averaged Spectrum without Fiber plotted.")
        
-        filename_averaged_spectra_with_fiber = "./.h5_files/2024-02-02_averaged_spectrum_with_fiber_10ms.h5"
+        filename_averaged_spectra_with_fiber = "./.h5_files/2024-02-05_averaged_spectrum_with_fiber_10ms.h5"
         print("Plotting Averaged Spectrum with Fiber...")
         plot_averaged_spectrum_with_fiber(filename_averaged_spectra_with_fiber)
         print("Averaged Spectrum with Fiber plotted.")
         
-        filename_normalized_averaged_spectrum_fiber = "./.h5_files/2024-02-02_normalized_averaged_spectrum_10ms.h5"
+        filename_normalized_averaged_spectrum_fiber = "./.h5_files/2024-02-05_normalized_averaged_spectrum_10ms.h5"
         print("Plotting Normalized Averaged Spectrum with Fiber...")
         plot_normalized_averaged_spectrum_fiber(filename_normalized_averaged_spectrum_fiber)
         print("Normalized Averaged Spectrum with Fiber plotted.")
         
-        filename_normalized_power_spectrum = "./.h5_files/2024-02-02_normalized_power_spectrum_10ms.h5"
+        filename_normalized_power_spectrum = "./.h5_files/2024-02-05_normalized_power_spectrum_10ms.h5"
         print("Plotting Normalized Power Spectrum...")
         plot_normalized_power_spectrum(filename_normalized_power_spectrum)
         print("Normalized Power Spectrum plotted.")
 
-        filename_individual_spectra_with_fiber = "./.h5_files/2024-02-02_spectrum_with_fiber_10ms.h5"
+        filename_individual_spectra_with_fiber = "./.h5_files/2024-02-05_spectrum_with_fiber_10ms.h5"
         print("Plotting Individual Spectra with Fiber...")
         plot_individual_spectra_normalized(filename_individual_spectra_with_fiber, filename_averaged_spectra_without_fiber)
         print("Individual Spectra with Fiber plotted.")
