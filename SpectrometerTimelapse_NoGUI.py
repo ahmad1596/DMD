@@ -40,7 +40,7 @@ def find_and_initialize_spectrometer():
 
 def get_measurement_settings():
     time_interval_seconds = 1
-    number_of_spectra = 10
+    number_of_spectra = 2
     integration_time_ms = 10
     total_duration_seconds = number_of_spectra * (time_interval_seconds + integration_time_ms / 1000)
     time_background = total_duration_seconds
@@ -118,21 +118,17 @@ def check_and_handle_background_spectrum(background_file_path, spectrometer, tim
         background_wavelengths, avg_background = load_background_spectrum(background_file_path)
     return background_wavelengths, avg_background
 
-def record_or_load_spectrum_without_fiber(spectrometer, data_directory, time_interval_seconds, integration_time_ms, time_background):
+def record_or_load_spectrum_without_fiber(spectrometer, data_directory, time_interval_seconds, integration_time_ms, time_background, avg_background):
     avg_spectrum_without_fiber = None
     try:
         spectrum_without_fiber_filename, spectrum_without_fiber_averaged_filename = generate_filenames_without_fiber(data_directory, integration_time_ms)
         if not file_exists(spectrum_without_fiber_averaged_filename):
-            input(f"Remove the fiber, block the laser beam, and press Enter when ready to record the spectrum without fiber (Integration Time={integration_time_ms} ms)")
-            background_without_fiber_spectra, background_without_fiber_timestamps = record_spectra_background(spectrometer, time_interval_seconds, integration_time_ms, time_background)
-            avg_background_without_fiber = calculate_average_spectra([spectrum[1] for spectrum in background_without_fiber_spectra])
-            print(f"Integration time for background without fiber recording: {integration_time_ms} ms")
-            spectrum_without_fiber, spectrum_without_fiber_timestamps = record_spectra(spectrometer, time_interval_seconds, integration_time_ms, time_background, avg_background_without_fiber)
+            spectrum_without_fiber, spectrum_without_fiber_timestamps = record_spectra(spectrometer, time_interval_seconds, integration_time_ms, time_background, avg_background)
             avg_spectrum_without_fiber = calculate_average_spectra([spectrum[1] for spectrum in spectrum_without_fiber])
             save_data_to_hdf5(spectrum_without_fiber_averaged_filename, {"wavelengths": spectrometer.wavelengths(), "averaged_intensities": avg_spectrum_without_fiber})
             print(f"Spectrum without fiber recorded and saved with Integration Time={integration_time_ms} ms")
         else:
-            print(f"Using the existing spectrum without fiber (Integration Time={integration_time_ms} ms.)")
+            print(f"Using the existing spectrum without fiber (Integration Time={integration_time_ms} ms)")
         input("Replace the fiber, unblock the laser beam, and press Enter when ready to continue with fiber spectra...")
     except Exception as e:
         print("An error occurred:", str(e))
@@ -188,7 +184,7 @@ def calculate_and_save_normalized_spectrum(spectrum_with_fiber_averaged_filename
         wavelengths_fiber = file_fiber["wavelengths"][:]
         intensities_fiber = file_fiber["averaged_intensities"][:]
         intensities_no_fiber = file_no_fiber["averaged_intensities"][:]
-        normalized_intensities = intensities_fiber / intensities_no_fiber
+        normalized_intensities = np.abs(intensities_fiber / intensities_no_fiber)
         normalized_averaged_spectrum_filename = spectrum_with_fiber_averaged_filename.replace("averaged_spectrum_with_fiber", "normalized_averaged_spectrum")        
         save_data_to_hdf5(normalized_averaged_spectrum_filename, {"wavelengths": wavelengths_fiber, "normalized_intensities": normalized_intensities})
         print("Normalized averaged spectrum saved to:", normalized_averaged_spectrum_filename)
@@ -220,7 +216,6 @@ def calculate_and_save_normalized_power_spectrum(normalized_averaged_spectrum_fi
 
 def main():
     try:
-        
         print("Initializing data directory and spectrometer...")
         time_interval_seconds, number_of_spectra, integration_time_ms, total_duration_seconds, time_background = get_measurement_settings()
         data_directory, background_file_path, spectrometer = initialize_data_and_spectrometer(integration_time_ms)
@@ -229,7 +224,8 @@ def main():
         background_wavelengths, avg_background = check_and_handle_background_spectrum(background_file_path, spectrometer, time_interval_seconds, integration_time_ms, time_background)
 
         print("Recording or loading spectrum without fiber...")
-        wavelengths, avg_spectrum_without_fiber = record_or_load_spectrum_without_fiber(spectrometer, data_directory, time_interval_seconds, integration_time_ms, time_background)
+        wavelengths, avg_spectrum_without_fiber = record_or_load_spectrum_without_fiber(spectrometer, data_directory, time_interval_seconds, integration_time_ms, time_background, avg_background)
+
         spectrum_with_fiber_filename, spectrum_with_fiber_averaged_filename = generate_filenames_with_fiber(data_directory, integration_time_ms)
         spectrum_without_fiber_filename, spectrum_without_fiber_averaged_filename = generate_filenames_without_fiber(data_directory, integration_time_ms)
 
@@ -247,7 +243,6 @@ def main():
         
         print("Calculating and saving normalized power spectrum...")
         calculate_and_save_normalized_power_spectrum(normalized_averaged_spectrum_filename, power_percentage)
-       
         
     except Exception as e:
         print("An error occurred:", str(e))
