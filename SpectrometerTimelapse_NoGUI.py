@@ -207,7 +207,6 @@ def calculate_and_save_normalized_power_spectrum(normalized_averaged_spectrum_fi
     with h5py.File(normalized_averaged_spectrum_filename, "r") as file_normalized:
         wavelengths_fiber = file_normalized["wavelengths"][:]
         normalized_intensities = file_normalized["normalized_intensities"][:]  
-
     normalized_power_spectrum = (normalized_intensities * power_percentage) / np.max(normalized_intensities)
     normalized_power_spectrum_filename = normalized_averaged_spectrum_filename.replace("normalized_averaged_spectrum", "normalized_power_spectrum")
     save_data_to_hdf5(normalized_power_spectrum_filename, {"wavelengths": wavelengths_fiber, "normalized_power_spectrum": normalized_power_spectrum})
