@@ -40,8 +40,8 @@ def find_and_initialize_spectrometer():
 
 def get_measurement_settings():
     time_interval_seconds = 1
-    number_of_spectra = 2
-    integration_time_ms = 10
+    number_of_spectra = 20
+    integration_time_ms = 20
     total_duration_seconds = number_of_spectra * (time_interval_seconds + integration_time_ms / 1000)
     time_background = total_duration_seconds
     print(f"Measurement settings: Time Interval = {time_interval_seconds} seconds, Number of Spectra = {number_of_spectra}, Integration Time = {integration_time_ms} ms")
@@ -184,7 +184,7 @@ def calculate_and_save_normalized_spectrum(spectrum_with_fiber_averaged_filename
         wavelengths_fiber = file_fiber["wavelengths"][:]
         intensities_fiber = file_fiber["averaged_intensities"][:]
         intensities_no_fiber = file_no_fiber["averaged_intensities"][:]
-        normalized_intensities = np.abs(intensities_fiber / intensities_no_fiber)
+        normalized_intensities = np.abs(intensities_fiber - intensities_no_fiber / intensities_no_fiber)
         normalized_averaged_spectrum_filename = spectrum_with_fiber_averaged_filename.replace("averaged_spectrum_with_fiber", "normalized_averaged_spectrum")        
         save_data_to_hdf5(normalized_averaged_spectrum_filename, {"wavelengths": wavelengths_fiber, "normalized_intensities": normalized_intensities})
         print("Normalized averaged spectrum saved to:", normalized_averaged_spectrum_filename)
@@ -207,7 +207,7 @@ def calculate_and_save_normalized_power_spectrum(normalized_averaged_spectrum_fi
     with h5py.File(normalized_averaged_spectrum_filename, "r") as file_normalized:
         wavelengths_fiber = file_normalized["wavelengths"][:]
         normalized_intensities = file_normalized["normalized_intensities"][:]  
-    normalized_power_spectrum = (normalized_intensities * power_percentage) / np.max(normalized_intensities)
+    normalized_power_spectrum = normalized_intensities * power_percentage
     normalized_power_spectrum_filename = normalized_averaged_spectrum_filename.replace("normalized_averaged_spectrum", "normalized_power_spectrum")
     save_data_to_hdf5(normalized_power_spectrum_filename, {"wavelengths": wavelengths_fiber, "normalized_power_spectrum": normalized_power_spectrum})
     print("Normalized power spectrum saved to:", normalized_power_spectrum_filename)
