@@ -184,7 +184,7 @@ def calculate_and_save_normalized_spectrum(spectrum_with_fiber_averaged_filename
         wavelengths_fiber = file_fiber["wavelengths"][:]
         intensities_fiber = file_fiber["averaged_intensities"][:]
         intensities_no_fiber = file_no_fiber["averaged_intensities"][:]
-        normalized_intensities = np.abs(intensities_fiber - intensities_no_fiber / intensities_no_fiber)
+        normalized_intensities = np.abs((intensities_fiber - intensities_no_fiber) / intensities_no_fiber)
         normalized_averaged_spectrum_filename = spectrum_with_fiber_averaged_filename.replace("averaged_spectrum_with_fiber", "normalized_averaged_spectrum")        
         save_data_to_hdf5(normalized_averaged_spectrum_filename, {"wavelengths": wavelengths_fiber, "normalized_intensities": normalized_intensities})
         print("Normalized averaged spectrum saved to:", normalized_averaged_spectrum_filename)
