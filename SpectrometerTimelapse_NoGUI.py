@@ -40,7 +40,7 @@ def find_and_initialize_spectrometer():
 
 def get_measurement_settings():
     time_interval_seconds = 1
-    number_of_spectra = 20
+    number_of_spectra = 3
     integration_time_ms = 20
     total_duration_seconds = number_of_spectra * (time_interval_seconds + integration_time_ms / 1000)
     time_background = total_duration_seconds
@@ -178,17 +178,17 @@ def close_spectrometer(spectrometer):
         spectrometer.close()
         print("Spectrometer closed.")
 
-def calculate_and_save_normalized_spectrum(spectrum_with_fiber_averaged_filename, spectrum_without_fiber_averaged_filename):
+def calculate_and_save_effective_fiber_spectrum(spectrum_with_fiber_averaged_filename, spectrum_without_fiber_averaged_filename):
     with h5py.File(spectrum_with_fiber_averaged_filename, "r") as file_fiber, \
          h5py.File(spectrum_without_fiber_averaged_filename, "r") as file_no_fiber:
         wavelengths_fiber = file_fiber["wavelengths"][:]
         intensities_fiber = file_fiber["averaged_intensities"][:]
         intensities_no_fiber = file_no_fiber["averaged_intensities"][:]
-        normalized_intensities = np.abs((intensities_fiber - intensities_no_fiber) / intensities_no_fiber)
-        normalized_averaged_spectrum_filename = spectrum_with_fiber_averaged_filename.replace("averaged_spectrum_with_fiber", "normalized_averaged_spectrum")        
-        save_data_to_hdf5(normalized_averaged_spectrum_filename, {"wavelengths": wavelengths_fiber, "normalized_intensities": normalized_intensities})
-        print("Normalized averaged spectrum saved to:", normalized_averaged_spectrum_filename)
-    return normalized_averaged_spectrum_filename
+        effective_fiber_spectrum = np.abs(intensities_fiber - intensities_no_fiber) 
+        effective_fiber_spectrum_filename = spectrum_with_fiber_averaged_filename.replace("averaged_spectrum_with_fiber", "effective_fiber_spectrum")        
+        save_data_to_hdf5(effective_fiber_spectrum_filename, {"wavelengths": wavelengths_fiber, "effective_fiber_spectrum": effective_fiber_spectrum})
+        print("Effective fiber spectrum saved to:", effective_fiber_spectrum_filename)
+    return effective_fiber_spectrum_filename
     
 def normalize_power():
     power_measurement_wavelength = 532
@@ -203,15 +203,14 @@ def normalize_power():
     print(f"Normalized Power Percentage: {power_percentage:.2f}%")
     return power_percentage
 
-def calculate_and_save_normalized_power_spectrum(normalized_averaged_spectrum_filename, power_percentage):
-    with h5py.File(normalized_averaged_spectrum_filename, "r") as file_normalized:
-        wavelengths_fiber = file_normalized["wavelengths"][:]
-        normalized_intensities = file_normalized["normalized_intensities"][:]  
-    normalized_power_spectrum = normalized_intensities * power_percentage / np.max(normalized_intensities)
-    normalized_power_spectrum_filename = normalized_averaged_spectrum_filename.replace("normalized_averaged_spectrum", "normalized_power_spectrum")
-    save_data_to_hdf5(normalized_power_spectrum_filename, {"wavelengths": wavelengths_fiber, "normalized_power_spectrum": normalized_power_spectrum})
-    print("Normalized power spectrum saved to:", normalized_power_spectrum_filename)
-
+def calculate_and_save_effective_fiber_transmission(effective_fiber_spectrum_filename, power_percentage):
+    with h5py.File(effective_fiber_spectrum_filename, "r") as file_effective_fiber:
+        wavelengths_fiber = file_effective_fiber["wavelengths"][:]
+        effective_fiber_spectrum = file_effective_fiber["effective_fiber_spectrum"][:]  
+    effective_fiber_transmission = effective_fiber_spectrum * power_percentage / np.max(effective_fiber_spectrum)
+    effective_fiber_transmission_filename = effective_fiber_spectrum_filename.replace("effective_fiber_spectrum", "effective_fiber_transmission")
+    save_data_to_hdf5(effective_fiber_transmission_filename, {"wavelengths": wavelengths_fiber, "effective_fiber_transmission": effective_fiber_transmission})
+    print("Effective fiber transmission saved to:", effective_fiber_transmission_filename)
 
 def main():
     try:
@@ -234,14 +233,14 @@ def main():
         print("Processing and saving data...")
         process_and_save_data(data_directory, spectra, timestamps, integration_time_ms)
         
-        print("Calculating and saving normalized spectrum...")
-        normalized_averaged_spectrum_filename = calculate_and_save_normalized_spectrum(spectrum_with_fiber_averaged_filename, spectrum_without_fiber_averaged_filename)
-       
+        print("Calculating and saving effective fiber spectrum...")
+        effective_fiber_spectrum_filename = calculate_and_save_effective_fiber_spectrum(spectrum_with_fiber_averaged_filename, spectrum_without_fiber_averaged_filename)
+        
         print("Calculating normalized power percentage...")
         power_percentage = normalize_power()
         
-        print("Calculating and saving normalized power spectrum...")
-        calculate_and_save_normalized_power_spectrum(normalized_averaged_spectrum_filename, power_percentage)
+        print("Calculating and saving effective fiber transmission...")
+        calculate_and_save_effective_fiber_transmission(effective_fiber_spectrum_filename, power_percentage)
         
     except Exception as e:
         print("An error occurred:", str(e))
