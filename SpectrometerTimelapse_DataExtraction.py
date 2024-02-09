@@ -43,7 +43,7 @@ def plot_normalized_transmission(filename):
         wavelengths = file["wavelengths"][:]
         normalized_transmission = file["effective_fiber_transmission"][:]
     plot_spectrum(wavelengths, normalized_transmission, "Wavelength (nm)", "Normalized Transmission (%)",
-                  "Normalized Transmission vs. Wavelength", "Normalized Transmission")
+                  "Normalized Transmission vs. Wavelength", "Normalized Transmission (%)")
 
 def plot_individual_spectra_normalized(filename_individual_spectra, filename_averaged_spectrum_without_fiber):
     with h5py.File(filename_individual_spectra, "r") as file_individual:
