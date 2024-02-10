@@ -23,7 +23,7 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
         else:
             file_name_without_suffix += 'no_alternate_slits'
     if option == 1:
-        file_name_display = file_name_without_suffix + '_um'
+        file_name_display = file_name_without_suffix + '_display'
         file_name_pixels = file_name_without_suffix 
     elif option == 2:
         file_name_display = file_name_without_suffix + '_display'
@@ -152,7 +152,7 @@ def main():
 
     print("*DLP2000*")
     print(f"Display Resolution: {array_width} x {array_height}")
-    print(f"Display Dimension: {array_width * micromirror_pitch} display x {array_height * micromirror_pitch} um")
+    print(f"Display Dimension: {array_width * micromirror_pitch} um x {array_height * micromirror_pitch} um")
     print(f"Micromirror Pitch: {micromirror_pitch} um")
 
     while True:
