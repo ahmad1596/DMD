@@ -194,6 +194,7 @@ def main():
 
         binary_array = generate_individual_positions((array_height, array_width), slits_type, slit_locations)
     elif option == 2:
+        orientation = 'vertical' if slits_type == 2 else 'horizontal'
         while True:
             allowed_range = (1, array_height) if slits_type == 1 else (1, array_width)
             alternate_size = int(input(f"Enter pixel slit spacing (allowed values: {allowed_range[0]} to {allowed_range[1]}): "))
@@ -202,7 +203,7 @@ def main():
             else:
                 break
 
-        binary_array = generate_alternate_slits((array_height, array_width), slits_type, alternate_size)
+        binary_array = generate_alternate_slits((array_height, array_width), slits_type, alternate_size, orientation)
 
     else:
         print("Invalid option. Choose 1 for 'Individual position' or 2 for 'Alternate slits'.")
