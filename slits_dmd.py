@@ -19,7 +19,7 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
             file_name_without_suffix += 'no_slits'
     elif option == 2:
         if alternate_size is not None:
-            file_name_without_suffix += f'alternate_slits_spacing_{alternate_size}'
+            file_name_without_suffix += f'alternate_slits_spacing_{alternate_size}pixels'
         else:
             file_name_without_suffix += 'no_alternate_slits'
     if option == 1:
@@ -37,8 +37,8 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     size_pixels = plt.imread(file_path_pixels).shape
     plot_binary_array_um(file_path_um, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size)
     print(f"Files saved in folder '{folder_name}':")
-    print(f"1. {file_name_um}.png (um version, size: {array_size[1]} x {array_size[0]})")
-    print(f"2. {file_name_pixels}.png (pixels version, size: {size_pixels[1]} x {size_pixels[0]})")
+    print(f"1. {file_name_um}.png (size: {array_size[1]} x {array_size[0]})")
+    print(f"2. {file_name_pixels}.png (size: {size_pixels[1]} x {size_pixels[0]})")
 
 def generate_slits(shape, slits_type, slit_coordinates, alternate_size=None):
     binary_array = np.zeros(shape, dtype=np.uint8)
