@@ -75,38 +75,20 @@ def generate_individual_positions(shape, slits_type, slit_positions):
     binary_array[y_coordinates, x_coordinates] = 255
     return binary_array
 
-def generate_alternate_slits(shape, slits_type, alternate_size, orientation='horizontal'):
+def generate_alternate_slits(shape, slits_type, slit_width, slit_spacing, orientation='horizontal'):
     binary_array = np.zeros(shape, dtype=np.uint8)
-    if alternate_size == 1:
+    if slit_spacing == 1:
         if orientation == 'horizontal':
             binary_array[::2, :] = 255  
         elif orientation == 'vertical':
-            binary_array[:, ::2] = 255
-        else:
-            print("Invalid orientation. Choose 'horizontal' or 'vertical'.")
-            return None
+            binary_array[:, ::2] = 255 
     else:
         if orientation == 'horizontal':
-            if slits_type == 1:
-                y_coordinates, x_coordinates = np.meshgrid(np.arange(0, shape[0], alternate_size), np.arange(shape[1]), indexing='ij')
-            elif slits_type == 2:
-                y_coordinates, x_coordinates = np.meshgrid(np.arange(shape[0]), np.arange(0, shape[1], alternate_size), indexing='ij')
-            else:
-                print("Invalid slits type. Choose 1 for 'vertical' or 2 for 'horizontal'.")
-                return None
+            binary_array[:, ::(slit_width + slit_spacing)] = 255
         elif orientation == 'vertical':
-            if slits_type == 1:
-                y_coordinates, x_coordinates = np.meshgrid(np.arange(0, shape[0], alternate_size), np.arange(shape[1]), indexing='ij')
-            elif slits_type == 2:
-                y_coordinates, x_coordinates = np.meshgrid(np.arange(shape[0]), np.arange(0, shape[1], alternate_size), indexing='ij')
-            else:
-                print("Invalid slits type. Choose 1 for 'vertical' or 2 for 'horizontal'.")
-                return None
-        else:
-            print("Invalid orientation. Choose 'horizontal' or 'vertical'.")
-            return None
-        binary_array[y_coordinates, x_coordinates] = 255
+            binary_array[::(slit_width + slit_spacing), :] = 255  
     return binary_array
+
 
 
 def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
@@ -177,6 +159,8 @@ def main():
             print("Invalid option. Please choose 1 for 'Individual position' or 2 for 'Alternate slits'.")
 
     alternate_size = None
+    slit_width = None
+    slit_spacing = None
     slit_coordinates = None
 
     if option == 1:
@@ -197,14 +181,20 @@ def main():
         orientation = 'vertical' if slits_type == 2 else 'horizontal'
         while True:
             allowed_range = (1, array_height) if slits_type == 1 else (1, array_width)
-            alternate_size = int(input(f"Enter pixel slit spacing (allowed values: {allowed_range[0]} to {allowed_range[1]}): "))
-            if not (allowed_range[0] <= alternate_size <= allowed_range[1]):
-                print(f"Invalid alternate slit size. Please enter a value in the range {allowed_range[0]} to {allowed_range[1]}.")
+            slit_width = int(input(f"Enter pixel slit width (allowed values: {allowed_range[0]} to {allowed_range[1]}): "))
+            if not (allowed_range[0] <= slit_width <= allowed_range[1]):
+                print(f"Invalid slit width. Please enter a value in the range {allowed_range[0]} to {allowed_range[1]}.")
             else:
                 break
-
-        binary_array = generate_alternate_slits((array_height, array_width), slits_type, alternate_size, orientation)
-
+    
+        while True:
+            slit_spacing = int(input(f"Enter pixel slit spacing (allowed values: 1 to {allowed_range[1]}): "))
+            if not (1 <= slit_spacing <= allowed_range[1]):
+                print(f"Invalid slit spacing. Please enter a value in the range 1 to {allowed_range[1]}.")
+            else:
+                break
+    
+        binary_array = generate_alternate_slits((array_height, array_width), slits_type, slit_width, slit_spacing, orientation)
     else:
         print("Invalid option. Choose 1 for 'Individual position' or 2 for 'Alternate slits'.")
         return
@@ -215,7 +205,7 @@ def main():
             slit_positions_str = slit_positions_str.replace(',', '_')
             file_name = f"{slits_type}_individual_positions_{slit_positions_str}"
         elif option == 2:
-            file_name = f"{slits_type}_alternate_size_{alternate_size}"
+            file_name = f"{slits_type}_slit_width_{slit_width}_slit_spacing_{slit_spacing}"
         else:
             print("Invalid option. Choose 1 for 'Individual position' or 2 for 'Alternate slits'.")
             return
