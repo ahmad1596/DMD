@@ -19,15 +19,15 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
             file_name_without_suffix += 'no_slits'
     elif option == 2:
         if alternate_size is not None:
-            file_name_without_suffix += f'slit_spacing_{alternate_size}pixels'  # Change this line
+            file_name_without_suffix += f'slit_spacing_{alternate_size}pixels'  
         else:
             file_name_without_suffix += 'no_alternate_slits'
     if option == 1:
         file_name_display = file_name_without_suffix + '_um'
-        file_name_pixels = file_name_without_suffix  # Change this line
+        file_name_pixels = file_name_without_suffix 
     elif option == 2:
         file_name_display = file_name_without_suffix + '_display'
-        file_name_pixels = file_name_without_suffix  # Change this line
+        file_name_pixels = file_name_without_suffix
     else:
         print("Invalid option. Choose 1 for 'Individual position' or 2 for 'Alternate slits'.")
         return
