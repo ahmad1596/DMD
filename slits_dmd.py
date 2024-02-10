@@ -19,26 +19,27 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
             file_name_without_suffix += 'no_slits'
     elif option == 2:
         if alternate_size is not None:
-            file_name_without_suffix += f'alternate_slits_spacing_{alternate_size}pixels'
+            file_name_without_suffix += f'slit_spacing_{alternate_size}pixels'  # Change this line
         else:
             file_name_without_suffix += 'no_alternate_slits'
     if option == 1:
-        file_name_um = file_name_without_suffix + '_um'
-        file_name_pixels = file_name_without_suffix + '_pixels'
+        file_name_display = file_name_without_suffix + '_um'
+        file_name_pixels = file_name_without_suffix  # Change this line
     elif option == 2:
-        file_name_um = file_name_without_suffix + '_um'
-        file_name_pixels = file_name_without_suffix + '_pixels'
+        file_name_display = file_name_without_suffix + '_display'
+        file_name_pixels = file_name_without_suffix  # Change this line
     else:
         print("Invalid option. Choose 1 for 'Individual position' or 2 for 'Alternate slits'.")
         return
-    file_path_um = os.path.join(folder_name, f'{file_name_um}.png')
+    file_path_display = os.path.join(folder_name, f'{file_name_display}.png')
     file_path_pixels = os.path.join(folder_name, f'{file_name_pixels}.png')
     plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_coordinates, alternate_size)
     size_pixels = plt.imread(file_path_pixels).shape
-    plot_binary_array_um(file_path_um, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size)
+    plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size)
     print(f"Files saved in folder '{folder_name}':")
-    print(f"1. {file_name_um}.png (size: {array_size[1]} x {array_size[0]})")
+    print(f"1. {file_name_display}.png (size: {array_size[1]} x {array_size[0]})")
     print(f"2. {file_name_pixels}.png (size: {size_pixels[1]} x {size_pixels[0]})")
+
 
 def generate_slits(shape, slits_type, slit_coordinates, alternate_size=None):
     binary_array = np.zeros(shape, dtype=np.uint8)
@@ -108,7 +109,7 @@ def generate_alternate_slits(shape, slits_type, alternate_size, orientation='hor
     return binary_array
 
 
-def plot_binary_array_um(file_path_um, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
+def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
     file_name = f'{slits_type}_'
     if option == 1:
         if slit_coordinates is not None:
@@ -127,7 +128,7 @@ def plot_binary_array_um(file_path_um, binary_array, micromirror_pitch, slits_ty
     ax.axis('off')
     ax.set_title('')
     plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-    plt.savefig(file_path_um, bbox_inches='tight', pad_inches=0)
+    plt.savefig(file_path_display, bbox_inches='tight', pad_inches=0)
     plt.close(fig)
 
 def plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_coordinates=None, alternate_size=None):
@@ -151,7 +152,7 @@ def main():
 
     print("*DLP2000*")
     print(f"Display Resolution: {array_width} x {array_height}")
-    print(f"Display Dimension: {array_width * micromirror_pitch} um x {array_height * micromirror_pitch} um")
+    print(f"Display Dimension: {array_width * micromirror_pitch} display x {array_height * micromirror_pitch} um")
     print(f"Micromirror Pitch: {micromirror_pitch} um")
 
     while True:
