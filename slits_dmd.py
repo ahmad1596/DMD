@@ -146,7 +146,7 @@ def main():
 
     while True:
         try:
-            slits_type = int(input("\nMicro-Mirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\nEnter the type of slits (1 or 2): "))
+            slits_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\nEnter the type of slits (1 or 2): "))
             if slits_type not in [1, 2]:
                 raise ValueError("Invalid input. Please enter 1 for 'Horizontal' or 2 for 'Vertical'.")
             break
