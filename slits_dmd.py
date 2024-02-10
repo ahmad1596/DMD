@@ -76,27 +76,37 @@ def generate_individual_positions(shape, slits_type, slit_positions):
 
 def generate_alternate_slits(shape, slits_type, alternate_size, orientation='horizontal'):
     binary_array = np.zeros(shape, dtype=np.uint8)
-    if orientation == 'horizontal':
-        if slits_type == 1:
-            y_coordinates, x_coordinates = np.meshgrid(np.arange(0, shape[0], alternate_size), np.arange(shape[1]), indexing='ij')
-        elif slits_type == 2:
-            y_coordinates, x_coordinates = np.meshgrid(np.arange(shape[0]), np.arange(0, shape[1], alternate_size), indexing='ij')
+    if alternate_size == 1:
+        if orientation == 'horizontal':
+            binary_array[::2, :] = 255  
+        elif orientation == 'vertical':
+            binary_array[:, ::2] = 255
         else:
-            print("Invalid slits type. Choose 1 for 'vertical' or 2 for 'horizontal'.")
-            return None
-    elif orientation == 'vertical':
-        if slits_type == 1:
-            y_coordinates, x_coordinates = np.meshgrid(np.arange(0, shape[0], alternate_size), np.arange(shape[1]), indexing='ij')
-        elif slits_type == 2:
-            y_coordinates, x_coordinates = np.meshgrid(np.arange(shape[0]), np.arange(0, shape[1], alternate_size), indexing='ij')
-        else:
-            print("Invalid slits type. Choose 1 for 'vertical' or 2 for 'horizontal'.")
+            print("Invalid orientation. Choose 'horizontal' or 'vertical'.")
             return None
     else:
-        print("Invalid orientation. Choose 'horizontal' or 'vertical'.")
-        return None
-    binary_array[y_coordinates, x_coordinates] = 255
+        if orientation == 'horizontal':
+            if slits_type == 1:
+                y_coordinates, x_coordinates = np.meshgrid(np.arange(0, shape[0], alternate_size), np.arange(shape[1]), indexing='ij')
+            elif slits_type == 2:
+                y_coordinates, x_coordinates = np.meshgrid(np.arange(shape[0]), np.arange(0, shape[1], alternate_size), indexing='ij')
+            else:
+                print("Invalid slits type. Choose 1 for 'vertical' or 2 for 'horizontal'.")
+                return None
+        elif orientation == 'vertical':
+            if slits_type == 1:
+                y_coordinates, x_coordinates = np.meshgrid(np.arange(0, shape[0], alternate_size), np.arange(shape[1]), indexing='ij')
+            elif slits_type == 2:
+                y_coordinates, x_coordinates = np.meshgrid(np.arange(shape[0]), np.arange(0, shape[1], alternate_size), indexing='ij')
+            else:
+                print("Invalid slits type. Choose 1 for 'vertical' or 2 for 'horizontal'.")
+                return None
+        else:
+            print("Invalid orientation. Choose 'horizontal' or 'vertical'.")
+            return None
+        binary_array[y_coordinates, x_coordinates] = 255
     return binary_array
+
 
 def plot_binary_array_um(file_path_um, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
     file_name = f'{slits_type}_'
