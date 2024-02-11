@@ -81,12 +81,14 @@ def generate_alternate_slits(shape, slits_type, slit_width, slit_spacing, orient
         if orientation == 'horizontal':
             binary_array[::2, :] = 255  
         elif orientation == 'vertical':
-            binary_array[:, ::2] = 255 
+            binary_array[:, ::2] = 255  
     else:
         if orientation == 'horizontal':
-            binary_array[:, ::(slit_width + slit_spacing)] = 255
+            for i in range(0, shape[0], slit_width + slit_spacing):
+                binary_array[i:i+slit_width, :] = 255 
         elif orientation == 'vertical':
-            binary_array[::(slit_width + slit_spacing), :] = 255  
+            for i in range(0, shape[1], slit_width + slit_spacing):
+                binary_array[:, i:i+slit_width] = 255  
     return binary_array
 
 def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
@@ -212,3 +214,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
