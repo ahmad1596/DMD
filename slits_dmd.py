@@ -8,15 +8,16 @@ def create_output_folder(folder_name='mask_outputs'):
         os.makedirs(folder_name)
     return folder_name
 
-def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None):
+def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None):
     folder_name = create_output_folder()
     slits_type_mapping = {1: 'horizontal', 2: 'vertical'}
     file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
+    slit_positions_str = ''
     if option == 2:
         file_name_without_suffix = file_name_without_suffix.replace('horizontal', 'checkerboard').replace('vertical', 'checkerboard')
     if option == 1: 
-        if slit_coordinates is not None:
-            slit_positions_str = '_'.join(map(str, slit_coordinates))
+        if slit_locations is not None:
+            slit_positions_str = '_'.join(map(str, slit_locations))
             file_name_without_suffix += f'_specific_positions_{slit_positions_str}'
         else:
             file_name_without_suffix += '_no_slits'
@@ -35,14 +36,13 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     file_name_pixels = f"{file_name_without_suffix}"
     file_path_display = os.path.join(folder_name, f'{file_name_display}.png')
     file_path_pixels = os.path.join(folder_name, f'{file_name_pixels}.png')
-    plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_coordinates, alternate_size)
+    plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_locations, alternate_size)
     size_pixels = plt.imread(file_path_pixels).shape
-    plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size)
+    plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_locations, alternate_size)
     print(f"\nFiles saved in folder '{folder_name}':")
     print(f"1. {file_name_display}.png (size: {array_size[1]} x {array_size[0]})")
     print(f"2. {file_name_pixels}.png (size: {size_pixels[1]} x {size_pixels[0]})")
 
-    
 def generate_slits(shape, slits_type, slit_coordinates, alternate_size=None):
     binary_array = np.zeros(shape, dtype=np.uint8)
     if slits_type == 1:
@@ -149,7 +149,6 @@ def main():
     print(f"Display Resolution: {array_width} x {array_height}")
     print(f"Display Dimension: {array_width * micromirror_pitch} um x {array_height * micromirror_pitch} um")
     print(f"Micromirror Pitch: {micromirror_pitch} um")
-
     while True:
         try:
             slits_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\nEnter the type of slits (1 or 2): "))
@@ -158,7 +157,6 @@ def main():
             break
         except ValueError as e:
             print(e)
-
     while True:
         print("\nChoose an option:")
         print("1. Specific positions")
@@ -169,13 +167,11 @@ def main():
             break
         else:
             print("Invalid option. Please choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
-
     alternate_size = None
     slit_width = None
     slit_spacing = None
-    slit_coordinates = None
+    slit_locations = None
     unit_size = None
-
     if option == 1:
         while True:
             print("\nChoose an option:")
@@ -188,10 +184,8 @@ def main():
                 break
             else:
                 print("Invalid option. Please choose 1 for 'Single position', 2 for 'Multiple positions', or 3 for 'Range of positions'.")
-
         slit_input_info = "Info: single position / position_1, position_2, position_3,... / range: 'start' to 'end'"
         print(slit_input_info)
-
         while True:
             try:
                 slit_input = input(f"Enter slit location (allowed values: 0 to {array_height - 1}) for {'horizontal' if slits_type == 1 else 'vertical'} slits: ")
@@ -202,9 +196,7 @@ def main():
                     break
             except ValueError as e:
                 print(e)
-
         binary_array = generate_specific_positions((array_height, array_width), slits_type, slit_locations)
-
     elif option == 2:
         while True:
             print("\nChoose an option:")
@@ -216,10 +208,8 @@ def main():
                 break
             else:
                 print("Invalid option. Please choose 1 for 'Slits' or 2 for 'Checkerboard'.")
-
         if alternate_option == 1:
             orientation = 'vertical' if slits_type == 2 else 'horizontal'
-
             while True:
                 try:
                     allowed_range = (1, array_height) if slits_type == 1 else (1, array_width)
@@ -232,7 +222,6 @@ def main():
                     break
                 except ValueError as e:
                     print(e)
-
             while True:
                 try:
                     slit_spacing_input = input(f"Enter pixel slit spacing (allowed values: 1 to {allowed_range[1]}): ")
@@ -244,10 +233,8 @@ def main():
                     break
                 except ValueError as e:
                     print(e)
-
             binary_array = generate_alternate_slits((array_height, array_width), slits_type, slit_width, slit_spacing, orientation)
             file_name = f"{slits_type}_slits_width_{slit_width}pixel_spacing_{slit_spacing}pixel"
-
         elif alternate_option == 2:
             while True:
                 try:
@@ -260,23 +247,21 @@ def main():
                     break
                 except ValueError as e:
                     print(e)
-
             binary_array = generate_alternate_slits((array_height, array_width), slits_type, unit_size, unit_size, checkerboard=True)
             file_name = f"checkerboard_unit_{unit_size}"
-
         else:
             print("Invalid option. Choose 1 for 'Slits' or 2 for 'Checkerboard'.")
             return
-
     else:
         print("Invalid option. Choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
         return
-
     if binary_array is not None:
         if option == 1:
-            slit_positions_str = '_'.join(map(str, slit_coordinates)) if slit_coordinates is not None else ''
-            slit_positions_str = slit_positions_str.replace(',', '_')
-            file_name = f"{slits_type}_specific_positions_{slit_positions_str}"
+            if slit_locations is not None:
+                slit_positions_str = '_'.join(map(str, slit_locations))
+                file_name = f"{slits_type}_specific_positions_{slit_positions_str}"
+            else:
+                file_name = f"{slits_type}_no_slits"
         elif option == 2:
             if alternate_option == 2:
                 file_name = "checkerboard"
@@ -285,9 +270,6 @@ def main():
         else:
             print("Invalid option. Choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
             return
-
-        save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size, (array_height, array_width), slit_width, slit_spacing, unit_size)
-
-
+        save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations, alternate_size, (array_height, array_width), slit_width, slit_spacing, unit_size)
 if __name__ == "__main__":
     main()
