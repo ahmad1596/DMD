@@ -144,7 +144,7 @@ def plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_t
 
 def main():
     micromirror_pitch = 7.56
-    array_height, array_width = 360, 640
+    array_width, array_height = 640, 360
     print("\n*DLP2000*")
     print(f"Display Resolution: {array_width} x {array_height}")
     print(f"Display Dimension: {array_width * micromirror_pitch} um x {array_height * micromirror_pitch} um")
@@ -158,8 +158,6 @@ def main():
             break
         except ValueError as e:
             print(e)
-    allowed_locations = f"Allowed {'horizontal' if slits_type == 1 else 'vertical'} slit locations: 0 to {array_width - 1}" if slits_type in [1, 2] else "Invalid slits type. Choose 1 for 'Horizontal' or 2 for 'Vertical'."
-    print(allowed_locations)
 
     while True:
         print("\nChoose an option:")
@@ -196,10 +194,10 @@ def main():
 
         while True:
             try:
-                slit_input = input(f"Enter slit location (Allowed values: 0 to {array_width - 1}) for {'horizontal' if slits_type == 1 else 'vertical'} slits: ")
+                slit_input = input(f"Enter slit location (allowed values: 0 to {array_height - 1}) for {'horizontal' if slits_type == 1 else 'vertical'} slits: ")
                 slit_locations = parse_slit_input(slit_input)
-                if (slits_type == 1 and any(slit < 0 or slit >= array_width for slit in slit_locations)) or (slits_type == 2 and any(slit < 0 or slit >= array_height for slit in slit_locations)):
-                    raise ValueError(f"Invalid slit location. Please enter values in the range 0 to {array_width - 1}." if slits_type == 1 else f"Invalid slit location. Please enter values in the range 0 to {array_height - 1}.")
+                if (slits_type == 1 and any(slit < 0 or slit >= array_height for slit in slit_locations)) or (slits_type == 2 and any(slit < 0 or slit >= array_width for slit in slit_locations)):
+                    raise ValueError(f"Invalid slit location. Please enter values in the range 0 to {array_height - 1}." if slits_type == 1 else f"Invalid slit location. Please enter values in the range 0 to {array_width - 1}.")
                 else:
                     break
             except ValueError as e:
