@@ -8,13 +8,19 @@ def create_output_folder(folder_name='mask_outputs'):
         os.makedirs(folder_name)
     return folder_name
 
-def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None):
+def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None):
     folder_name = create_output_folder()
     slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular'}
     file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
+    
+    if slits_type == 3:
+        file_name_without_suffix = 'circular'
+        if radius is not None:
+            file_name_without_suffix += f'_{radius}pixels_radius'
+    
     slit_positions_str = ''
     if option == 2:
-        file_name_without_suffix = file_name_without_suffix.replace('horizontal', 'checkerboard').replace('vertical', 'checkerboard')
+        file_name_without_suffix = 'checkerboard'
     if option == 1: 
         if slit_locations is not None:
             slit_positions_str = '_'.join(map(str, slit_locations))
@@ -32,6 +38,7 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
                     file_name_without_suffix = f'vertical_slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
     if unit_size is not None:
         file_name_without_suffix += f'_{unit_size}pixels'
+    
     file_name_display = f"{file_name_without_suffix}_display"
     file_name_pixels = f"{file_name_without_suffix}"
     file_path_display = os.path.join(folder_name, f'{file_name_display}.png')
@@ -42,6 +49,7 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     print(f"\nFiles saved in folder '{folder_name}':")
     print(f"1. {file_name_display}.png (size: {array_size[1]} x {array_size[0]})")
     print(f"2. {file_name_pixels}.png (size: {size_pixels[1]} x {size_pixels[0]})")
+
 
 def generate_slits(shape, slits_type, slit_coordinates, alternate_size=None):
     binary_array = np.zeros(shape, dtype=np.uint8)
@@ -124,7 +132,7 @@ def generate_circular_pattern(shape):
     pixels_used = np.sum(mask)
     binary_array[mask] = 255
     print(f"Circular pattern (radius: {radius} pixels) created using {pixels_used} pixels.")
-    return binary_array
+    return binary_array, radius
 
 def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
     file_name = f'{slits_type}_'
@@ -185,10 +193,11 @@ def main():
     slit_spacing = None
     unit_size = None
     if configuration_type == 3:
-        binary_array = generate_circular_pattern((array_height, array_width))
+        binary_array, radius = generate_circular_pattern((array_height, array_width))
         file_name = "circular_pattern"
-        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, slit_locations, alternate_size, (array_height, array_width))
+        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, slit_locations, alternate_size, (array_height, array_width), radius=radius)
         return
+
     else:
         slits_type = configuration_type
 
@@ -203,11 +212,6 @@ def main():
         else:
             print("Invalid option. Please choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
 
-    alternate_size = None
-    slit_width = None
-    slit_spacing = None
-    slit_locations = None
-    unit_size = None
 
     if option == 1:
         while True:
@@ -322,3 +326,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
