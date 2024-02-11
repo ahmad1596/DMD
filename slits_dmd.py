@@ -1,3 +1,4 @@
+# Author: Ahmad Azizan (aaaba2@cam.ac.uk)
 import numpy as np
 import matplotlib.pyplot as plt
 import os
