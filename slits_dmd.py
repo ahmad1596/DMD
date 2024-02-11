@@ -10,37 +10,33 @@ def create_output_folder(folder_name='mask_outputs'):
 def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None):
     folder_name = create_output_folder()
     slits_type_mapping = {1: 'horizontal', 2: 'vertical'}
-    file_name_without_suffix = f'{slits_type_mapping[slits_type]}_'
-
+    file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
+    file_name_without_suffix = file_name_without_suffix.replace('horizontal', 'checkerboard').replace('vertical', 'checkerboard')
     if option == 1:
         if slit_coordinates is not None:
             slit_positions_str = '_'.join(map(str, slit_coordinates))
-            file_name_without_suffix += f'specific_positions_{slit_positions_str}'
+            file_name_without_suffix += f'_specific_positions_{slit_positions_str}'
         else:
-            file_name_without_suffix += 'no_slits'
+            file_name_without_suffix += '_no_slits'
     elif option == 2:
         if alternate_size is not None:
-            file_name_without_suffix += 'checkerboard'
+            file_name_without_suffix = 'checkerboard'
         else:
-            file_name_without_suffix += f'slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
-
-    if option == 2 and alternate_size is not None:
-        file_name_without_suffix += '_checkerboard'
-
+            if slit_width is not None and slit_spacing is not None:
+                if slits_type == 1:
+                    file_name_without_suffix = f'horizontal_slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
+                elif slits_type == 2:
+                    file_name_without_suffix = f'vertical_slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
     file_name_display = f"{file_name_without_suffix}_display"
     file_name_pixels = f"{file_name_without_suffix}"
-
     file_path_display = os.path.join(folder_name, f'{file_name_display}.png')
     file_path_pixels = os.path.join(folder_name, f'{file_name_pixels}.png')
-
     plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_coordinates, alternate_size)
     size_pixels = plt.imread(file_path_pixels).shape
     plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size)
-
     print(f"Files saved in folder '{folder_name}':")
     print(f"1. {file_name_display}.png (size: {array_size[1]} x {array_size[0]})")
     print(f"2. {file_name_pixels}.png (size: {size_pixels[1]} x {size_pixels[0]})")
-
 def generate_slits(shape, slits_type, slit_coordinates, alternate_size=None):
     binary_array = np.zeros(shape, dtype=np.uint8)
     if slits_type == 1:
@@ -222,21 +218,24 @@ def main():
                     print(f"Invalid slit width. Please enter a value in the range {allowed_range[0]} to {allowed_range[1]}.")
                 else:
                     break
-        
+
             while True:
                 slit_spacing = int(input(f"Enter pixel slit spacing (allowed values: 1 to {allowed_range[1]}): "))
                 if not (1 <= slit_spacing <= allowed_range[1]):
                     print(f"Invalid slit spacing. Please enter a value in the range 1 to {allowed_range[1]}.")
                 else:
                     break
-        
+
             binary_array = generate_alternate_slits((array_height, array_width), slits_type, slit_width, slit_spacing, orientation)
+            file_name = f"{slits_type}_slits_width_{slit_width}pixel_spacing_{slit_spacing}pixel"
+
         elif alternate_option == 2:
-            binary_array = generate_alternate_slits((array_height, array_width), slits_type, slit_width=1, slit_spacing=2, checkerboard=True)
+            binary_array = generate_alternate_slits((array_height, array_width), slits_type, slit_width, slit_spacing, checkerboard=True)
+            file_name = "checkerboard"  
+
         else:
             print("Invalid option. Choose 1 for 'Slits' or 2 for 'Checkerboard'.")
             return
-
 
     else:
         print("Invalid option. Choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
@@ -248,7 +247,10 @@ def main():
             slit_positions_str = slit_positions_str.replace(',', '_')
             file_name = f"{slits_type}_specific_positions_{slit_positions_str}"
         elif option == 2:
-            file_name = f"{slits_type}_slits_width_{slit_width}pixel_spacing_{slit_spacing}pixel"
+            if alternate_option == 2:
+                file_name = "checkerboard"
+            else:
+                file_name = f"{slits_type}_slits_width_{slit_width}pixel_spacing_{slit_spacing}pixel"
         else:
             print("Invalid option. Choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
             return
