@@ -189,7 +189,7 @@ def main():
             else:
                 print("Invalid option. Please choose 1 for 'Single position', 2 for 'Multiple positions', or 3 for 'Range of positions'.")
 
-        slit_input_info = "Info: single position / position_1, position_2, position_3,... / range 'start to end'"
+        slit_input_info = "Info: single position / position_1, position_2, position_3,... / range: 'start' to 'end'"
         print(slit_input_info)
 
         while True:
