@@ -12,7 +12,7 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     slits_type_mapping = {1: 'horizontal', 2: 'vertical'}
     file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
     file_name_without_suffix = file_name_without_suffix.replace('horizontal', 'checkerboard').replace('vertical', 'checkerboard')
-    if option == 1:
+    if option == 1: 
         if slit_coordinates is not None:
             slit_positions_str = '_'.join(map(str, slit_coordinates))
             file_name_without_suffix += f'_specific_positions_{slit_positions_str}'
@@ -76,6 +76,7 @@ def generate_alternate_slits(shape, slits_type, slit_width, slit_spacing, orient
     binary_array = np.zeros(shape, dtype=np.uint8)
     if checkerboard:
         binary_array[::2, ::2] = 255
+        binary_array[1::2, 1::2] = 255
     else:
         if slit_spacing == 1 and slit_width == 1:
             if orientation == 'horizontal':
