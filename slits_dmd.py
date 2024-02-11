@@ -7,39 +7,39 @@ def create_output_folder(folder_name='mask_outputs'):
         os.makedirs(folder_name)
     return folder_name
 
-def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None, array_size=None):
+def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None):
     folder_name = create_output_folder()
     slits_type_mapping = {1: 'horizontal', 2: 'vertical'}
     file_name_without_suffix = f'{slits_type_mapping[slits_type]}_'
+    
     if option == 1:
         if slit_coordinates is not None:
-            slit_positions_str = '_'.join(map(str, [slit_coordinates]))
+            slit_positions_str = '_'.join(map(str, slit_coordinates))
             file_name_without_suffix += f'individual_positions_{slit_positions_str}'
         else:
             file_name_without_suffix += 'no_slits'
     elif option == 2:
         if alternate_size is not None:
-            file_name_without_suffix += f'slit_spacing_{alternate_size}pixels'  
+            file_name_without_suffix += f'slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
         else:
-            file_name_without_suffix += 'no_alternate_slits'
-    if option == 1:
-        file_name_display = file_name_without_suffix + '_display'
-        file_name_pixels = file_name_without_suffix 
-    elif option == 2:
-        file_name_display = file_name_without_suffix + '_display'
-        file_name_pixels = file_name_without_suffix
-    else:
-        print("Invalid option. Choose 1 for 'Individual position' or 2 for 'Alternate slits'.")
-        return
+            file_name_without_suffix += f'slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
+
+    if option == 2 and alternate_size is not None:
+        file_name_without_suffix += f'_slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
+    
+    file_name_display = f"{file_name_without_suffix}_display"
+    file_name_pixels = f"{file_name_without_suffix}"
+
     file_path_display = os.path.join(folder_name, f'{file_name_display}.png')
     file_path_pixels = os.path.join(folder_name, f'{file_name_pixels}.png')
+    
     plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_coordinates, alternate_size)
     size_pixels = plt.imread(file_path_pixels).shape
     plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size)
+    
     print(f"Files saved in folder '{folder_name}':")
     print(f"1. {file_name_display}.png (size: {array_size[1]} x {array_size[0]})")
     print(f"2. {file_name_pixels}.png (size: {size_pixels[1]} x {size_pixels[0]})")
-
 
 def generate_slits(shape, slits_type, slit_coordinates, alternate_size=None):
     binary_array = np.zeros(shape, dtype=np.uint8)
@@ -77,7 +77,7 @@ def generate_individual_positions(shape, slits_type, slit_positions):
 
 def generate_alternate_slits(shape, slits_type, slit_width, slit_spacing, orientation='horizontal'):
     binary_array = np.zeros(shape, dtype=np.uint8)
-    if slit_spacing == 1:
+    if slit_spacing == 1 and slit_width == 1:
         if orientation == 'horizontal':
             binary_array[::2, :] = 255  
         elif orientation == 'vertical':
@@ -88,8 +88,6 @@ def generate_alternate_slits(shape, slits_type, slit_width, slit_spacing, orient
         elif orientation == 'vertical':
             binary_array[::(slit_width + slit_spacing), :] = 255  
     return binary_array
-
-
 
 def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
     file_name = f'{slits_type}_'
@@ -205,12 +203,14 @@ def main():
             slit_positions_str = slit_positions_str.replace(',', '_')
             file_name = f"{slits_type}_individual_positions_{slit_positions_str}"
         elif option == 2:
-            file_name = f"{slits_type}_slit_width_{slit_width}_slit_spacing_{slit_spacing}"
+            file_name = f"{slits_type}_slits_width_{slit_width}pixel_spacing_{slit_spacing}pixel"
         else:
             print("Invalid option. Choose 1 for 'Individual position' or 2 for 'Alternate slits'.")
             return
 
-        save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size, (array_height, array_width))
+        save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_coordinates, alternate_size, (array_height, array_width), slit_width, slit_spacing)
 
 if __name__ == "__main__":
     main()
+
+
