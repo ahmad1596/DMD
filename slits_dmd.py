@@ -8,9 +8,9 @@ def create_output_folder(folder_name='mask_outputs'):
         os.makedirs(folder_name)
     return folder_name
 
-def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None):
+def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None, center_coordinates=None):
     folder_name = create_output_folder()
-    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular'}
+    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular', 4: 'cross'}
     file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
     
     if slits_type == 3:
@@ -38,6 +38,9 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
                     file_name_without_suffix = f'vertical_slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
     if unit_size is not None:
         file_name_without_suffix += f'_{unit_size}pixels'
+    
+    if center_coordinates is not None:
+        file_name_without_suffix += f'_({center_coordinates[0]},{center_coordinates[1]})'
     
     file_name_display = f"{file_name_without_suffix}_display"
     file_name_pixels = f"{file_name_without_suffix}"
@@ -134,6 +137,20 @@ def generate_circular_pattern(shape):
     print(f"Circular pattern (radius: {radius} pixels) created using {pixels_used} pixels.")
     return binary_array, radius
 
+def generate_cross_pattern(shape, intersection_point=None):
+    binary_array = np.zeros(shape, dtype=np.uint8)
+    if intersection_point is None:
+        center_y = shape[0] // 2
+        center_x = shape[1] // 2
+    else:
+        center_y, center_x = intersection_point
+    binary_array[center_y, :] = 255
+    binary_array[:, center_x] = 255
+    print(f"Cross pattern created with intersection point at ({center_x},{center_y}).")
+    return binary_array
+
+
+
 def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
     file_name = f'{slits_type}_'
     if option == 1:
@@ -177,27 +194,50 @@ def main():
     print("\n*DLP2000*")
     print(f"Display Resolution: {array_width} x {array_height}")
     print(f"Display Dimension: {array_width * micromirror_pitch} um x {array_height * micromirror_pitch} um")
+    
     while True:
         try:
-            configuration_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\n3. Circular pattern\nChoose configuration (1, 2, or 3): "))
-            if configuration_type not in [1, 2, 3]:
-                raise ValueError("Invalid input. Please enter 1 for 'Horizontal slits', 2 for 'Vertical slits', or 3 for 'Circular pattern'.")
+            configuration_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\n3. Circular pattern\n4. Cross pattern\nChoose configuration (1, 2, 3, or 4): "))
+            if configuration_type not in [1, 2, 3, 4]:
+                raise ValueError("Invalid input. Please enter 1 for 'Horizontal slits', 2 for 'Vertical slits', 3 for 'Circular pattern' or 4 for 'Cross pattern'.")
             break
         except ValueError as e:
             print(e)
-
+    
     slits_type = None
     slit_locations = None
     alternate_size = None
     slit_width = None
     slit_spacing = None
     unit_size = None
+    radius = None
+    
     if configuration_type == 3:
         binary_array, radius = generate_circular_pattern((array_height, array_width))
         file_name = "circular_pattern"
         save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, slit_locations, alternate_size, (array_height, array_width), radius=radius)
         return
-
+    
+    if configuration_type == 4:
+        center_x = array_width // 2
+        center_y = array_height // 2
+        print(f"\nDefault center for the cross pattern: ({center_x},{center_y})")
+        intersection_point_input = input("Enter the intersection point for the cross pattern (e.g., x,y): ")
+        if intersection_point_input:
+            try:
+                intersection_point = tuple(map(int, intersection_point_input.split(',')))
+            except ValueError:
+                print("Invalid input format. Please enter the intersection point as x,y.")
+                return
+        else:
+            intersection_point = None
+    
+        binary_array = generate_cross_pattern((array_height, array_width), intersection_point)
+        file_name = "cross_pattern"
+        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width), radius=radius, center_coordinates=(center_x, center_y))
+        return
+    
+    
     else:
         slits_type = configuration_type
 
