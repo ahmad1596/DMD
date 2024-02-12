@@ -10,7 +10,7 @@ def create_output_folder(folder_name='mask_outputs'):
 
 def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None, center_coordinates=None, radius_inner=None, radius_outer=None):
     folder_name = create_output_folder()
-    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular', 4: 'cross', 5: 'ring'}  # Update slits_type_mapping
+    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular', 4: 'cross', 5: 'ring'} 
     file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
     if slits_type == 3:
         file_name_without_suffix = 'circular'
