@@ -8,9 +8,9 @@ def create_output_folder(folder_name='mask_outputs'):
         os.makedirs(folder_name)
     return folder_name
 
-def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None, center_coordinates=None, radius_inner=None, radius_outer=None, turns=None, density=None):
+def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None, center_coordinates=None, radius_inner=None, radius_outer=None, turns=None, thickness=None):
     folder_name = create_output_folder()
-    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular', 4: 'cross', 5: 'ring', 6: 'spiral', 7: 'X_shaped', 8: 'diagonal_slits'}
+    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular', 4: 'cross', 5: 'ring', 6: 'spiral', 7: 'X_shaped', 8: 'smiley_face'}
     file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
     if slits_type == 3:
         file_name_without_suffix = 'circular'
@@ -26,7 +26,7 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     elif slits_type == 7:
         file_name_without_suffix = 'X_shaped'
     elif slits_type == 8:
-        file_name_without_suffix = f'diagonal_slits_density_{density}' if density is not None else 'diagonal_slits'
+        file_name_without_suffix = 'smiley_face'
     slit_positions_str = ''
     if option == 2:
         file_name_without_suffix = 'checkerboard'
@@ -50,17 +50,17 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     if center_coordinates is not None:
         file_name_without_suffix += f'_({center_coordinates[0]},{center_coordinates[1]})'
     if slits_type == 5:
-        file_name_display = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels_density_{density}_display"
-        file_name_pixels = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels_density_{density}"
+        file_name_display = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels_display"
+        file_name_pixels = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels"
     elif slits_type == 6:
-        file_name_display = f"{file_name_without_suffix}_density_{density}_display"
-        file_name_pixels = f"{file_name_without_suffix}_density_{density}"
+        file_name_display = f"{file_name_without_suffix}_display"
+        file_name_pixels = f"{file_name_without_suffix}"
     elif slits_type == 7:
-        file_name_display = f"{file_name_without_suffix}_density_{density}_display"
-        file_name_pixels = f"{file_name_without_suffix}_density_{density}"
+        file_name_display = f"{file_name_without_suffix}_thickness_{thickness}_display"
+        file_name_pixels = f"{file_name_without_suffix}_thickness_{thickness}"
     elif slits_type == 8:
-        file_name_display = f"{file_name_without_suffix}_density_{density}_display"
-        file_name_pixels = f"{file_name_without_suffix}_density_{density}"
+        file_name_display = f"{file_name_without_suffix}_display"
+        file_name_pixels = f"{file_name_without_suffix}"
     else:
         file_name_display = f"{file_name_without_suffix}_display"
         file_name_pixels = f"{file_name_without_suffix}"
@@ -192,8 +192,7 @@ def generate_spiral_pattern(shape, micromirror_pitch, turns=2):
     binary_array[y_coordinates, x_coordinates] = 255
     return binary_array
 
-def generate_X_shaped_pattern(shape, density):
-    thickness = int(input("Enter the thickness of the X-shaped lines in pixels: "))
+def generate_X_shaped_pattern(shape, density, thickness):
     binary_array = np.zeros(shape, dtype=np.uint8)
     center_x, center_y = shape[1] // 2, shape[0] // 2
     max_distance = min(center_y, center_x)
@@ -204,16 +203,37 @@ def generate_X_shaped_pattern(shape, density):
         binary_array[center_y - i:center_y - i + thickness, center_x + i:center_x + i + thickness] = 255
     return binary_array
 
-def generate_diagonal_slits_pattern(size, width_of_diagonal):
-    binary_array = np.zeros(size, dtype=np.uint8)
-
-    min_dimension = min(size)
-    for i in range(min_dimension):
-        binary_array[i, i] = 255
-
+def generate_smiley_face_pattern(shape):
+    binary_array = np.zeros(shape, dtype=np.uint8)  
+    center_x, center_y = shape[1] // 2, shape[0] // 2
+    radius = min(center_x, center_y)
+    y_coordinates, x_coordinates = np.ogrid[:shape[0], :shape[1]]
+    face_mask = (x_coordinates - center_x) ** 2 + (y_coordinates - center_y) ** 2 <= radius ** 2
+    binary_array[face_mask] = 255  
+    eye_width = radius // 6
+    eye_height = radius // 4
+    eye_offset_x = radius // 4
+    eye_offset_y = radius // 6
+    left_eye_center = (center_x - eye_offset_x, center_y + eye_offset_y)
+    right_eye_center = (center_x + eye_offset_x, center_y + eye_offset_y)
+    left_eye_mask = ((x_coordinates - left_eye_center[0]) ** 2 / eye_width**2 + 
+                     (y_coordinates - left_eye_center[1]) ** 2 / eye_height**2 <= 1)
+    right_eye_mask = ((x_coordinates - right_eye_center[0]) ** 2 / eye_width**2 + 
+                      (y_coordinates - right_eye_center[1]) ** 2 / eye_height**2 <= 1)
+    binary_array[left_eye_mask] = 0  
+    binary_array[right_eye_mask] = 0 
+    mouth_radius = radius // 2
+    mouth_width = radius // 3
+    mouth_height = radius // 50
+    mouth_start_angle = np.radians(210)
+    mouth_end_angle = np.radians(330)  
+    theta = np.linspace(mouth_start_angle, mouth_end_angle, 1000)
+    mouth_x = (center_x + mouth_width * np.cos(theta)).astype(int)
+    upper_mouth_y = (center_y + mouth_radius * np.sin(theta) - mouth_height).astype(int)
+    lower_mouth_y = (center_y + mouth_radius * np.sin(theta)).astype(int)
+    binary_array[upper_mouth_y, mouth_x] = 0
+    binary_array[lower_mouth_y, mouth_x] = 0
     return binary_array
-
-
 
 def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
     file_name = f'{slits_type}_'
@@ -260,9 +280,9 @@ def main():
     print(f"Display Dimension: {array_width * micromirror_pitch} um x {array_height * micromirror_pitch} um")
     while True:
         try:
-            configuration_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\n3. Circular pattern\n4. Cross pattern\n5. Ring pattern\n6. Spiral pattern\n7. X_shaped pattern\n8. Diagonal_slits pattern\nChoose configuration (1-8): "))
+            configuration_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\n3. Circular pattern\n4. Cross pattern\n5. Ring pattern\n6. Spiral pattern\n7. X_shaped pattern\n8. Smiley face pattern\nChoose configuration (1-8): "))
             if configuration_type not in [1, 2, 3, 4, 5, 6, 7, 8]:
-                raise ValueError("Invalid input. Please enter 1 for 'Horizontal slits', 2 for 'Vertical slits', 3 for 'Circular pattern', 4 for 'Cross pattern', 5 for 'Ring pattern', 6 for 'Spiral pattern', 7 for 'X_shaped pattern', or 8 for 'Diagonal_slits pattern'.")
+                raise ValueError("Invalid input. Please enter a number between 1 and 8.")
             break
         except ValueError as e:
             print(e)
@@ -291,15 +311,12 @@ def main():
                 return
         else:
             intersection_point = None
-        
         thickness_input = input("Enter the thickness of the cross pattern in pixels (default is 1): ")
         thickness = int(thickness_input) if thickness_input.isdigit() else None
-    
         binary_array = generate_cross_pattern((array_height, array_width), intersection_point, thickness)
         file_name = f"cross_pattern_thickness_{thickness}" if thickness is not None else "cross_pattern"
         save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width), radius=radius, center_coordinates=(center_x, center_y))
         return
-    
     if configuration_type == 5: 
       print("Maximum ring diameter: 360 pixels (display height).")
       while True:
@@ -344,33 +361,26 @@ def main():
                 break
             except ValueError:
                 print("Invalid input. Please enter a valid integer.")
-    
-        binary_array = generate_X_shaped_pattern((array_height, array_width), density)
-        file_name = f"X_shaped_pattern_density_{density}"
-        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width), density=density)
-        return
-    if configuration_type == 8:
         while True:
             try:
-                density_input = input("Enter the density of the diagonal slits (press Enter for default 1): ")
-                if not density_input:
-                    density = 1
-                else:
-                    density = int(density_input)
-        
-                if density <= 0:
-                    raise ValueError("Density must be a positive integer.")
+                thickness_input = input("Enter the thickness of the X-shaped lines in pixels (default is 1): ")
+                thickness = int(thickness_input) if thickness_input.strip() else 1
+                if thickness <= 0:
+                    raise ValueError("Thickness must be a positive integer.")
                 break
             except ValueError:
                 print("Invalid input. Please enter a valid integer.")
-        width_of_diagonal = 20
-        binary_array = generate_diagonal_slits_pattern((array_height, array_width), width_of_diagonal)
-        file_name = f"diagonal_slits_density_{density}"
-        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width), density=density)
+        binary_array = generate_X_shaped_pattern((array_height, array_width), density, thickness)
+        file_name = f"X_shaped_pattern_density_{density}_thickness_{thickness}pixel"
+        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width), thickness=thickness)
+        return
+    if configuration_type == 8:      
+        binary_array = generate_smiley_face_pattern((array_height, array_width))
+        file_name = "smiley_face_pattern"
+        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width))
         return
     else:
         slits_type = configuration_type
-
     while True:
         print("\nChoose an option:")
         print("1. Specific positions")
@@ -482,5 +492,3 @@ def main():
         save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations, alternate_size, (array_height, array_width), slit_width, slit_spacing, unit_size)
 if __name__ == "__main__":
     main()
-
-        
