@@ -8,17 +8,21 @@ def create_output_folder(folder_name='mask_outputs'):
         os.makedirs(folder_name)
     return folder_name
 
-def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None, center_coordinates=None, radius_inner=None, radius_outer=None):
+def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None, center_coordinates=None, radius_inner=None, radius_outer=None, turns=None):
     folder_name = create_output_folder()
-    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular', 4: 'cross', 5: 'ring'} 
+    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular', 4: 'cross', 5: 'ring', 6: 'spiral'} 
     file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
     if slits_type == 3:
         file_name_without_suffix = 'circular'
         if radius is not None:
             file_name_without_suffix += f'_{radius}pixels_radius'
-    elif slits_type == 5:  # Add this condition for the ring pattern
+    elif slits_type == 5:  
         if radius_inner is not None and radius_outer is not None:
             file_name_without_suffix = f'ring_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels'
+    elif slits_type == 6:  
+        file_name_without_suffix = 'spiral'
+        if turns is not None:
+            file_name_without_suffix += f'_{turns}_turns'
     slit_positions_str = ''
     if option == 2:
         file_name_without_suffix = 'checkerboard'
@@ -43,6 +47,8 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
         file_name_without_suffix += f'_({center_coordinates[0]},{center_coordinates[1]})'
     if slits_type == 5:
         file_name_display = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels_display"
+    if slits_type == 6:
+        file_name_display = f"{file_name_without_suffix}_display"
     else:
         file_name_display = f"{file_name_without_suffix}_display"
     file_name_pixels = f"{file_name_without_suffix}"
@@ -160,6 +166,17 @@ def generate_ring_pattern(shape, radius_inner, radius_outer):
     binary_array[mask_ring] = 255
     return binary_array
 
+def generate_spiral_pattern(shape, micromirror_pitch, turns=2):
+    binary_array = np.zeros(shape, dtype=np.uint8)
+    center_x, center_y = shape[1] // 2, shape[0] // 2
+    max_radius = min(center_x, center_y)
+    theta = np.linspace(0, 2 * np.pi * turns, 1000)
+    radius = np.linspace(0, max_radius, len(theta))
+    x_coordinates = (center_x + radius * np.cos(theta)).astype(int)
+    y_coordinates = (center_y + radius * np.sin(theta)).astype(int)
+    binary_array[y_coordinates, x_coordinates] = 255
+    return binary_array
+
 def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
     file_name = f'{slits_type}_'
     if option == 1:
@@ -205,9 +222,9 @@ def main():
     print(f"Display Dimension: {array_width * micromirror_pitch} um x {array_height * micromirror_pitch} um")
     while True:
         try:
-            configuration_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\n3. Circular pattern\n4. Cross pattern\n5. Ring pattern\nChoose configuration (1, 2, 3, 4, or 5): "))
-            if configuration_type not in [1, 2, 3, 4, 5]:
-                raise ValueError("Invalid input. Please enter 1 for 'Horizontal slits', 2 for 'Vertical slits', 3 for 'Circular pattern', 4 for 'Cross pattern', or 5 for 'Ring pattern'.")
+            configuration_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\n3. Circular pattern\n4. Cross pattern\n5. Ring pattern\n6. Spiral pattern\nChoose configuration (1, 2, 3, 4, 5, or 6): "))
+            if configuration_type not in [1, 2, 3, 4, 5, 6]:
+                raise ValueError("Invalid input. Please enter 1 for 'Horizontal slits', 2 for 'Vertical slits', 3 for 'Circular pattern', 4 for 'Cross pattern', 5 for 'Ring pattern', or 6 for 'Spiral pattern'.")
             break
         except ValueError as e:
             print(e)
@@ -259,6 +276,21 @@ def main():
       save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width),
                           radius_inner=radius_inner, radius_outer=radius_outer)
       return
+    if configuration_type == 6:
+        while True:
+            try:
+                turns_input = input("Enter the number of turns for the spiral pattern: ")
+                turns = int(turns_input)
+                if turns <= 0:
+                    raise ValueError("Number of turns must be a positive integer.")
+                break
+            except ValueError:
+                print("Invalid input. Please enter a valid integer.")
+
+        binary_array = generate_spiral_pattern((array_height, array_width), micromirror_pitch, turns)
+        file_name = f"spiral_pattern_{turns}_turns"
+        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, slit_locations, alternate_size, (array_height, array_width), radius=radius, turns=turns)
+        return
     else:
         slits_type = configuration_type
 
