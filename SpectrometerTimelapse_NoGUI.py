@@ -1,494 +1,252 @@
 # Author: Ahmad Azizan (aaaba2@cam.ac.uk)
-import numpy as np
-import matplotlib.pyplot as plt
 import os
+import time
+import h5py
+from seabreeze.spectrometers import list_devices, Spectrometer
+import numpy as np
 
-def create_output_folder(folder_name='mask_outputs'):
-    if not os.path.exists(folder_name):
-        os.makedirs(folder_name)
-    return folder_name
+def create_directory_if_not_exists(directory_path):
+    if not os.path.exists(directory_path):
+        os.makedirs(directory_path)
+        print(f"Created directory: {directory_path}")
 
-def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations=None, alternate_size=None, array_size=None, slit_width=None, slit_spacing=None, unit_size=None, radius=None, center_coordinates=None, radius_inner=None, radius_outer=None, turns=None, thickness=None):
-    folder_name = create_output_folder()
-    slits_type_mapping = {1: 'horizontal', 2: 'vertical', 3: 'circular', 4: 'cross', 5: 'ring', 6: 'spiral', 7: 'X_shaped', 8: 'smiley_face'}
-    file_name_without_suffix = f'{slits_type_mapping[slits_type]}'
-    if slits_type == 3:
-        file_name_without_suffix = 'circular'
-        if radius is not None:
-            file_name_without_suffix += f'_{radius}pixels_radius'
-    elif slits_type == 5:
-        if radius_inner is not None and radius_outer is not None:
-            file_name_without_suffix = f'ring_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels'
-    elif slits_type == 6:
-        file_name_without_suffix = 'spiral'
-        if turns is not None:
-            file_name_without_suffix += f'_{turns}_turns'
-    elif slits_type == 7:
-        file_name_without_suffix = 'X_shaped'
-    elif slits_type == 8:
-        file_name_without_suffix = 'smiley_face'
-    slit_positions_str = ''
-    if option == 2:
-        file_name_without_suffix = 'checkerboard'
-    if option == 1:
-        if slit_locations is not None:
-            slit_positions_str = '_'.join(map(str, slit_locations))
-            file_name_without_suffix += f'_specific_positions_{slit_positions_str}'
-        else:
-            file_name_without_suffix += '_no_slits'
-    elif option == 2:
-        if alternate_size is not None:
-            file_name_without_suffix = 'checkerboard'
-        else:
-            if slit_width is not None and slit_spacing is not None:
-                if slits_type == 1:
-                    file_name_without_suffix = f'horizontal_slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
-                elif slits_type == 2:
-                    file_name_without_suffix = f'vertical_slit_width_{slit_width}pixels_spacing_{slit_spacing}pixels'
-    if unit_size is not None:
-        file_name_without_suffix += f'_{unit_size}pixels'
-    if center_coordinates is not None:
-        file_name_without_suffix += f'_({center_coordinates[0]},{center_coordinates[1]})'
-    if slits_type == 5:
-        file_name_display = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels_display"
-        file_name_pixels = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels"
-    elif slits_type == 6:
-        file_name_display = f"{file_name_without_suffix}_display"
-        file_name_pixels = f"{file_name_without_suffix}"
-    elif slits_type == 7:
-        file_name_display = f"{file_name_without_suffix}_thickness_{thickness}_display"
-        file_name_pixels = f"{file_name_without_suffix}_thickness_{thickness}"
-    elif slits_type == 8:
-        file_name_display = f"{file_name_without_suffix}_display"
-        file_name_pixels = f"{file_name_without_suffix}"
-    else:
-        file_name_display = f"{file_name_without_suffix}_display"
-        file_name_pixels = f"{file_name_without_suffix}"
-    file_path_display = os.path.join(folder_name, f'{file_name_display}.png')
-    file_path_pixels = os.path.join(folder_name, f'{file_name_pixels}.png')
-    plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_locations, alternate_size)
-    size_pixels = plt.imread(file_path_pixels).shape
-    plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_locations, alternate_size)
-    print(f"\nFiles saved in folder '{folder_name}':")
-    print(f"1. {file_name_display}.png (size: {array_size[1]} x {array_size[0]})")
-    print(f"2. {file_name_pixels}.png (size: {size_pixels[1]} x {size_pixels[0]})")
+def file_exists(file_path):
+    exists = os.path.exists(file_path)
+    print(f"File exists at {file_path}: {exists}")
+    return exists
 
+def save_data_to_hdf5(file_path, data_dict):
+    with h5py.File(file_path, "w") as file:
+        for key, value in data_dict.items():
+            file.create_dataset(key, data=value)
+    print(f"Saved data to HDF5 file: {file_path}")
 
-def generate_slits(shape, slits_type, slit_coordinates, alternate_size=None):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    if slits_type == 1:
-        binary_array[:, ::alternate_size] = 255 if alternate_size is not None else 0
-    elif slits_type == 2:
-        binary_array[::alternate_size, :] = 255 if alternate_size is not None else 0
-    else:
-        print("Invalid slits type. Choose 1 for 'vertical' or 2 for 'horizontal'.")
+def initialize_data_and_spectrometer(integration_time_ms):
+    data_directory = "./.h5_files"
+    create_directory_if_not_exists(data_directory)
+    background_file_path = os.path.join(data_directory, f"averaged_background_spectrum_{integration_time_ms}ms.h5")
+    spectrometer = find_and_initialize_spectrometer()
+    print("Data directory and spectrometer initialized.")
+    return data_directory, background_file_path, spectrometer
+
+def find_and_initialize_spectrometer():
+    devices = list_devices()
+    if not devices:
+        print("No spectrometer device found.")
         return None
-    return binary_array
+    spectrometer = Spectrometer(devices[0])
+    print(f"Spectrometer initialized: {spectrometer.model}")
+    return spectrometer
 
-def print_allowed_locations(slits_type, array_size):
-    start_location, end_location = (0, array_size[0] - 1) if slits_type == 1 else (0, array_size[1] - 1)
-    print(f"allowed {'horizontal' if slits_type == 1 else 'vertical'} slit locations: {start_location} to {end_location}")
+def get_measurement_settings():
+    time_interval_seconds = 1
+    number_of_spectra = 3
+    integration_time_ms = 20
+    total_duration_seconds = number_of_spectra * (time_interval_seconds + integration_time_ms / 1000)
+    time_background = total_duration_seconds
+    print(f"Measurement settings: Time Interval = {time_interval_seconds} seconds, Number of Spectra = {number_of_spectra}, Integration Time = {integration_time_ms} ms")
+    print(f"Total measurement duration: {total_duration_seconds:.2f} seconds")
+    return time_interval_seconds, number_of_spectra, integration_time_ms, total_duration_seconds, time_background
 
-def parse_slit_input(slit_input):
-    if 'to' in slit_input:
-        start, end = map(int, slit_input.split('to'))
-        return list(range(start, end + 1))
+def load_background_spectrum(file_path):
+    if file_exists(file_path):
+        with h5py.File(file_path, "r") as file:
+            wavelengths = file["wavelengths"][:]
+            intensities = file["intensities"][:]
+            print(f"Loaded background spectrum from: {file_path}")
+            return wavelengths, intensities
     else:
-        return [int(position) for position in slit_input.split(',')]
-
-def generate_specific_positions(shape, slits_type, slit_positions):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    if slits_type == 1:
-        y_coordinates, x_coordinates = np.meshgrid(slit_positions, np.arange(shape[1]), indexing='ij')
-    elif slits_type == 2:
-        y_coordinates, x_coordinates = np.meshgrid(np.arange(shape[0]), slit_positions, indexing='ij')
-    else:
-        print("Invalid slits type. Choose 1 for 'vertical' or 2 for 'horizontal'.")
+        print("Background spectrum file not found.")
         return None
-    binary_array[y_coordinates, x_coordinates] = 255
-    return binary_array
 
-def generate_alternate_slits(shape, slits_type, slit_width, slit_spacing, orientation='horizontal', checkerboard=False):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    if checkerboard:
-        if slit_width == 1 and slit_spacing == 1:
-            binary_array[::2, ::2] = 255
-            binary_array[1::2, 1::2] = 255
-        else:
-            unit_width = slit_width + slit_spacing
-            unit_height = slit_width + slit_spacing
-            for i in range(0, shape[0], unit_height):
-                for j in range(0, shape[1], unit_width):
-                    binary_array[i:i + slit_width, j:j + slit_width] = 255  
+def record_spectra_background(spectrometer, time_interval_seconds, integration_time_ms, total_duration_seconds):
+    spectra = []
+    timestamps = []
+    integration_time_micros = integration_time_ms * 1000
+    spectrometer.integration_time_micros(integration_time_micros)
+    start_time = time.time()
+    print("Recording background spectra...")
+    while (time.time() - start_time) <= total_duration_seconds:
+        spectrum_data = spectrometer.spectrum(correct_dark_counts=True)
+        wavelengths = spectrometer.wavelengths()
+        spectra.append((wavelengths, spectrum_data))
+        time.sleep(time_interval_seconds)
+        timestamps.append(time.time())
+    print(f"Recorded {len(spectra)} background spectra.")
+    return spectra, timestamps
+
+def record_spectra(spectrometer, time_interval_seconds, integration_time_ms, total_duration_seconds, avg_background):
+    spectra = []
+    timestamps = []
+    integration_time_micros = integration_time_ms * 1000
+    spectrometer.integration_time_micros(integration_time_micros)
+    start_time = time.time()
+    print("Recording spectra with background subtraction...")
+    while (time.time() - start_time) <= total_duration_seconds:
+        spectrum_data = spectrometer.spectrum(correct_dark_counts=True)
+        wavelengths = spectrometer.wavelengths()
+        spectrum_data = spectrum_data - avg_background
+        spectra.append((wavelengths, spectrum_data))
+        time.sleep(time_interval_seconds)
+        timestamps.append(time.time())
+    print(f"Recorded {len(spectra)} spectra with background subtraction.")
+    return spectra, timestamps
+
+def calculate_average_spectra(spectra_list):
+    num_spectra = len(spectra_list)
+    if num_spectra == 0:
+        return None
+    sum_intensities = [0] * len(spectra_list[0][1])
+    for wavelengths, intensities in spectra_list:
+        for i, intensity in enumerate(intensities):
+            sum_intensities[i] += intensity
+    avg_intensities = [intensity_sum / num_spectra for intensity_sum in sum_intensities]
+    print(f"Calculated average intensities from {num_spectra} spectra.")
+    return avg_intensities
+
+def check_and_handle_background_spectrum(background_file_path, spectrometer, time_interval_seconds, integration_time_ms, time_background):
+    if not file_exists(background_file_path):
+        input("Make sure the laser is OFF and press Enter when ready to read the background...")
+        background_spectra, background_timestamps = record_spectra_background(spectrometer, time_interval_seconds, integration_time_ms, time_background)
+        avg_background = calculate_average_spectra([spectrum[1] for spectrum in background_spectra])
+        save_data_to_hdf5(background_file_path, {"wavelengths": spectrometer.wavelengths(), "intensities": avg_background})
+        print("Background reading complete. Saved background spectrum.")
+        input("Turn ON the laser and press Enter when ready to start live view...")
+        background_wavelengths = spectrometer.wavelengths()
     else:
-        if slit_width == 1 and slit_spacing == 1:
-            if orientation == 'horizontal':
-                binary_array[::2, :] = 255
-            elif orientation == 'vertical':
-                binary_array[:, ::2] = 255
+        print("Using the existing background spectrum.")
+        background_wavelengths, avg_background = load_background_spectrum(background_file_path)
+    return background_wavelengths, avg_background
+
+def record_or_load_spectrum_without_fiber(spectrometer, data_directory, time_interval_seconds, integration_time_ms, time_background, avg_background):
+    avg_spectrum_without_fiber = None
+    try:
+        spectrum_without_fiber_filename, spectrum_without_fiber_averaged_filename = generate_filenames_without_fiber(data_directory, integration_time_ms)
+        if not file_exists(spectrum_without_fiber_averaged_filename):
+            spectrum_without_fiber, spectrum_without_fiber_timestamps = record_spectra(spectrometer, time_interval_seconds, integration_time_ms, time_background, avg_background)
+            avg_spectrum_without_fiber = calculate_average_spectra([spectrum[1] for spectrum in spectrum_without_fiber])
+            save_data_to_hdf5(spectrum_without_fiber_averaged_filename, {"wavelengths": spectrometer.wavelengths(), "averaged_intensities": avg_spectrum_without_fiber})
+            print(f"Spectrum without fiber recorded and saved with Integration Time={integration_time_ms} ms")
         else:
-            if orientation == 'horizontal':
-                for i in range(0, shape[0], slit_width + slit_spacing):
-                    binary_array[i:i + slit_width, :] = 255
-            elif orientation == 'vertical':
-                for i in range(0, shape[1], slit_width + slit_spacing):
-                    binary_array[:, i:i + slit_width] = 255
-    return binary_array
+            print(f"Using the existing spectrum without fiber (Integration Time={integration_time_ms} ms)")
+        input("Replace the fiber, unblock the laser beam, and press Enter when ready to continue with fiber spectra...")
+    except Exception as e:
+        print("An error occurred:", str(e))
+    return spectrum_without_fiber_filename, avg_spectrum_without_fiber
 
-def generate_circular_pattern(shape):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    center_x, center_y = shape[1] // 2, shape[0] // 2
-    max_radius = min(center_x, center_y)
-    print(f"\nAllowed radius values: 1 to {min(center_x, center_y)} pixels")
-    while True:
-        try:
-            radius_input = input("Enter the radius of the circular pattern in pixels: ")
-            radius = int(radius_input)
-            if 1 <= radius <= max_radius:
-                break
-            else:
-                print(f"Invalid input. Please enter a value between 1 and {max_radius}.")
-        except ValueError:
-            print("Invalid input. Please enter a valid integer.")    
-    y_coordinates, x_coordinates = np.ogrid[:shape[0], :shape[1]]
-    mask = (x_coordinates - center_x) ** 2 + (y_coordinates - center_y) ** 2 <= radius ** 2
-    pixels_used = np.sum(mask)
-    binary_array[mask] = 255
-    print(f"Circular pattern (radius: {radius} pixels) created using {pixels_used} pixels.")
-    return binary_array, radius
+def generate_filenames_with_fiber(data_directory, integration_time_ms, count=0):
+    current_date = time.strftime('%Y-%m-%d')
+    base_filename = os.path.join(data_directory, f"{current_date}_spectrum_with_fiber_{integration_time_ms}ms")
+    averaged_filename = os.path.join(data_directory, f"{current_date}_averaged_spectrum_with_fiber_{integration_time_ms}ms")
+    while file_exists(f"{averaged_filename}.h5"):
+        count += 1
+        base_filename = os.path.join(data_directory, f"{current_date}_spectrum_with_fiber_{integration_time_ms}ms_({count})")
+        averaged_filename = os.path.join(data_directory, f"{current_date}_averaged_spectrum_with_fiber_{integration_time_ms}ms_({count})")
+    base_filename += ".h5"
+    averaged_filename += ".h5"
+    print(f"Generated filenames with fiber: {base_filename}, {averaged_filename}")
+    return base_filename, averaged_filename
 
-def generate_cross_pattern(shape, intersection_point=None, thickness=None):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    if intersection_point is None:
-        center_y = shape[0] // 2
-        center_x = shape[1] // 2
-    else:
-        center_y, center_x = intersection_point
-    if thickness is None:
-        thickness = 1  
-    binary_array[center_y - thickness // 2:center_y + (thickness + 1) // 2, :] = 255
-    binary_array[:, center_x - thickness // 2:center_x + (thickness + 1) // 2] = 255
-    print(f"Cross pattern created with intersection point at ({center_x},{center_y}) and thickness {thickness} pixels.")
-    return binary_array
+def generate_filenames_without_fiber(data_directory, integration_time_ms):
+    filename = os.path.join(data_directory, f"spectrum_without_fiber_{integration_time_ms}ms.h5")
+    averaged_filename = os.path.join(data_directory, f"averaged_spectrum_without_fiber_{integration_time_ms}ms.h5")
+    print(f"Generated filenames without fiber: {filename}, {averaged_filename}")
+    return filename, averaged_filename
 
-def generate_ring_pattern(shape, radius_inner, radius_outer):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    center_x, center_y = shape[1] // 2, shape[0] // 2
-    y_coordinates, x_coordinates = np.ogrid[:shape[0], :shape[1]]
-    mask_inner = (x_coordinates - center_x) ** 2 + (y_coordinates - center_y) ** 2 <= radius_inner ** 2
-    mask_outer = (x_coordinates - center_x) ** 2 + (y_coordinates - center_y) ** 2 <= radius_outer ** 2
-    mask_ring = np.logical_and(mask_outer, np.logical_not(mask_inner))
-    binary_array[mask_ring] = 255
-    return binary_array
+def save_data_to_files(filename, averaged_filename, wavelengths, averaged_intensities, spectra, timestamps):
+    save_data_to_hdf5(averaged_filename, {"wavelengths": wavelengths, "averaged_intensities": averaged_intensities})
+    with h5py.File(filename, "w") as file:
+        for i, (wavelengths, intensity_values) in enumerate(spectra):
+            group_name = f"Spectrum_{i + 1:03d}"
+            group = file.create_group(group_name)
+            group.create_dataset("wavelengths", data=wavelengths)
+            group.create_dataset("intensities", data=intensity_values)
+            group.create_dataset("timestamp", data=timestamps[i])
+    print(f"Saved data to files: {averaged_filename}, {filename}")
 
-def generate_spiral_pattern(shape, micromirror_pitch, turns=2):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    center_x, center_y = shape[1] // 2, shape[0] // 2
-    max_radius = min(center_x, center_y)
-    theta = np.linspace(0, 2 * np.pi * turns, 1000)
-    radius = np.linspace(0, max_radius, len(theta))
-    x_coordinates = (center_x + radius * np.cos(theta)).astype(int)
-    y_coordinates = (center_y + radius * np.sin(theta)).astype(int)
-    binary_array[y_coordinates, x_coordinates] = 255
-    return binary_array
+def process_and_save_data(data_directory, spectra, timestamps, integration_time_ms):
+    averaged_intensities = calculate_average_spectra([spectrum[1] for spectrum in spectra])
+    wavelengths = spectra[0][0]
+    filename, averaged_filename = generate_filenames_with_fiber(data_directory, integration_time_ms)
+    spectrum_without_fiber_filename, spectrum_without_fiber_averaged_filename = generate_filenames_without_fiber(data_directory, integration_time_ms)
+    save_data_to_files(filename, averaged_filename, wavelengths, averaged_intensities, spectra, timestamps)
+    print("Averaged spectrum with fiber saved to", averaged_filename)
+    print("All {} spectra with fiber saved to {}".format(len(spectra), filename))
 
-def generate_X_shaped_pattern(shape, density, thickness):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    center_x, center_y = shape[1] // 2, shape[0] // 2
-    max_distance = min(center_y, center_x)
-    for i in range(0, max_distance, density):
-        binary_array[center_y - i:center_y - i + thickness, center_x - i:center_x - i + thickness] = 255
-        binary_array[center_y + i:center_y + i + thickness, center_x + i:center_x + i + thickness] = 255
-        binary_array[center_y + i:center_y + i + thickness, center_x - i:center_x - i + thickness] = 255
-        binary_array[center_y - i:center_y - i + thickness, center_x + i:center_x + i + thickness] = 255
-    return binary_array
+def close_spectrometer(spectrometer):
+    if spectrometer:
+        spectrometer.close()
+        print("Spectrometer closed.")
 
-def generate_smiley_face_pattern(shape):
-    binary_array = np.zeros(shape, dtype=np.uint8)  
-    center_x, center_y = shape[1] // 2, shape[0] // 2
-    radius = min(center_x, center_y)
-    y_coordinates, x_coordinates = np.ogrid[:shape[0], :shape[1]]
-    face_mask = (x_coordinates - center_x) ** 2 + (y_coordinates - center_y) ** 2 <= radius ** 2
-    binary_array[face_mask] = 255  
-    eye_width = radius // 6
-    eye_height = radius // 4
-    eye_offset_x = radius // 4
-    eye_offset_y = radius // 6
-    left_eye_center = (center_x - eye_offset_x, center_y + eye_offset_y)
-    right_eye_center = (center_x + eye_offset_x, center_y + eye_offset_y)
-    left_eye_mask = ((x_coordinates - left_eye_center[0]) ** 2 / eye_width**2 + 
-                     (y_coordinates - left_eye_center[1]) ** 2 / eye_height**2 <= 1)
-    right_eye_mask = ((x_coordinates - right_eye_center[0]) ** 2 / eye_width**2 + 
-                      (y_coordinates - right_eye_center[1]) ** 2 / eye_height**2 <= 1)
-    binary_array[left_eye_mask] = 0  
-    binary_array[right_eye_mask] = 0 
-    mouth_radius = radius // 2
-    mouth_width = radius // 3
-    mouth_height = radius // 50
-    mouth_start_angle = np.radians(210)
-    mouth_end_angle = np.radians(330)  
-    theta = np.linspace(mouth_start_angle, mouth_end_angle, 1000)
-    mouth_x = (center_x + mouth_width * np.cos(theta)).astype(int)
-    upper_mouth_y = (center_y + mouth_radius * np.sin(theta) - mouth_height).astype(int)
-    lower_mouth_y = (center_y + mouth_radius * np.sin(theta)).astype(int)
-    binary_array[upper_mouth_y, mouth_x] = 0
-    binary_array[lower_mouth_y, mouth_x] = 0
-    return binary_array
+def calculate_and_save_effective_fiber_spectrum(spectrum_with_fiber_averaged_filename, spectrum_without_fiber_averaged_filename):
+    with h5py.File(spectrum_with_fiber_averaged_filename, "r") as file_fiber, \
+         h5py.File(spectrum_without_fiber_averaged_filename, "r") as file_no_fiber:
+        wavelengths_fiber = file_fiber["wavelengths"][:]
+        intensities_fiber = file_fiber["averaged_intensities"][:]
+        intensities_no_fiber = file_no_fiber["averaged_intensities"][:]
+        effective_fiber_spectrum = np.abs(intensities_fiber - intensities_no_fiber) 
+        effective_fiber_spectrum_filename = spectrum_with_fiber_averaged_filename.replace("averaged_spectrum_with_fiber", "effective_fiber_spectrum")        
+        save_data_to_hdf5(effective_fiber_spectrum_filename, {"wavelengths": wavelengths_fiber, "effective_fiber_spectrum": effective_fiber_spectrum})
+        print("Effective fiber spectrum saved to:", effective_fiber_spectrum_filename)
+    return effective_fiber_spectrum_filename
+    
+def normalize_power():
+    power_measurement_wavelength = 532
+    input_power_uW = float(input("Enter the input power in microwatts: "))
+    background_input_power_uW = float(input("Enter the background input power in microwatts: "))
+    output_power_uW = float(input("Enter the output power in microwatts: "))
+    background_output_power_uW = float(input("Enter the background output power in microwatts: "))
+    normalized_input_power_uW = input_power_uW - background_input_power_uW
+    normalized_output_power_uW = output_power_uW - background_output_power_uW
+    power_percentage = (normalized_output_power_uW * 100) / normalized_input_power_uW
+    print(f"Wavelength at {power_measurement_wavelength} nm")
+    print(f"Normalized Power Percentage: {power_percentage:.2f}%")
+    return power_percentage
 
-def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
-    file_name = f'{slits_type}_'
-    if option == 1:
-        if slit_coordinates is not None:
-            slit_positions_str = '_'.join(map(str, slit_coordinates))
-            file_name += f'specific_positions_{slit_positions_str}'
-        else:
-            file_name += 'no_slits'
-    elif option == 2:
-        if alternate_size is not None:
-            file_name += f'alternate_size_{alternate_size}'
-        else:
-            file_name += 'no_alternate_slits'
-    fig, ax = plt.subplots(figsize=(640/600, 360/600), dpi=600)
-    extent = [0, binary_array.shape[1] * micromirror_pitch, 0, binary_array.shape[0] * micromirror_pitch]
-    ax.imshow(binary_array, cmap='gray', aspect='auto', extent=extent, interpolation='none', origin='lower')
-    ax.axis('off')
-    ax.set_title('')
-    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
-    plt.savefig(file_path_display, bbox_inches='tight', pad_inches=0)
-    plt.close(fig)
-
-def plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_coordinates=None, alternate_size=None):
-    fig, ax = plt.subplots(figsize=(640/100, 360/100), dpi=600)
-    ax.imshow(binary_array, cmap='gray', aspect='auto', extent=[0, array_size[1], 0, array_size[0]], interpolation='none', origin='lower')
-    ax.set_xlabel('X (pixels)', fontsize=14, fontweight="bold")
-    ax.set_ylabel('Y (pixels)', fontsize=14, fontweight="bold")
-    x_ticks = np.arange(0, array_size[1] + 1, 50)
-    y_ticks = np.arange(0, array_size[0] + 1, 50)
-    ax.set_xticks(x_ticks)
-    ax.set_yticks(y_ticks)
-    ax.tick_params(axis="both", which="major", labelsize=12, direction="in")
-    ax.set_title('', fontsize=16, fontweight="bold")
-    plt.tight_layout()
-    plt.savefig(file_path_pixels)
-    plt.show()
+def calculate_and_save_effective_fiber_transmission(effective_fiber_spectrum_filename, power_percentage):
+    with h5py.File(effective_fiber_spectrum_filename, "r") as file_effective_fiber:
+        wavelengths_fiber = file_effective_fiber["wavelengths"][:]
+        effective_fiber_spectrum = file_effective_fiber["effective_fiber_spectrum"][:]  
+    effective_fiber_transmission = effective_fiber_spectrum * power_percentage / np.max(effective_fiber_spectrum)
+    effective_fiber_transmission_filename = effective_fiber_spectrum_filename.replace("effective_fiber_spectrum", "effective_fiber_transmission")
+    save_data_to_hdf5(effective_fiber_transmission_filename, {"wavelengths": wavelengths_fiber, "effective_fiber_transmission": effective_fiber_transmission})
+    print("Effective fiber transmission saved to:", effective_fiber_transmission_filename)
 
 def main():
-    micromirror_pitch = 7.56
-    array_width, array_height = 640, 360
-    print("\n*DLP2000*")
-    print(f"Display Resolution: {array_width} x {array_height}")
-    print(f"Display Dimension: {array_width * micromirror_pitch} um x {array_height * micromirror_pitch} um")
-    while True:
-        try:
-            configuration_type = int(input("\nMicromirror Array Configuration:\n1. Horizontal slits\n2. Vertical slits\n3. Circular pattern\n4. Cross pattern\n5. Ring pattern\n6. Spiral pattern\n7. X_shaped pattern\n8. Smiley face pattern\nChoose configuration (1-8): "))
-            if configuration_type not in [1, 2, 3, 4, 5, 6, 7, 8]:
-                raise ValueError("Invalid input. Please enter a number between 1 and 8.")
-            break
-        except ValueError as e:
-            print(e)
-    slits_type = None
-    slit_locations = None
-    alternate_size = None
-    slit_width = None
-    slit_spacing = None
-    unit_size = None
-    radius = None
-    if configuration_type == 3:
-        binary_array, radius = generate_circular_pattern((array_height, array_width))
-        file_name = "circular_pattern"
-        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, slit_locations, alternate_size, (array_height, array_width), radius=radius)
-        return
-    if configuration_type == 4:
-        center_x = array_width // 2
-        center_y = array_height // 2
-        print(f"\nDefault center for the cross pattern: ({center_x},{center_y})")
-        intersection_point_input = input("Enter the intersection point for the cross pattern (e.g., x,y): ")
-        if intersection_point_input:
-            try:
-                intersection_point = tuple(map(int, intersection_point_input.split(',')))
-            except ValueError:
-                print("Invalid input format. Please enter the intersection point as x,y.")
-                return
-        else:
-            intersection_point = None
-        thickness_input = input("Enter the thickness of the cross pattern in pixels (default is 1): ")
-        thickness = int(thickness_input) if thickness_input.isdigit() else None
-        binary_array = generate_cross_pattern((array_height, array_width), intersection_point, thickness)
-        file_name = f"cross_pattern_thickness_{thickness}" if thickness is not None else "cross_pattern"
-        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width), radius=radius, center_coordinates=(center_x, center_y))
-        return
-    if configuration_type == 5: 
-      print("Maximum ring diameter: 360 pixels (display height).")
-      while True:
-          try:
-              radius_inner_input = input("Enter the inner radius of the ring pattern in pixels: ")
-              radius_outer_input = input("Enter the outer radius of the ring pattern in pixels: ")
-              radius_inner = int(radius_inner_input)
-              radius_outer = int(radius_outer_input)
-              if 1 <= radius_inner < radius_outer:
-                  break
-              else:
-                  print("Invalid input. Please ensure that 1 <= inner radius < outer radius.")
-          except ValueError:
-              print("Invalid input. Please enter valid integers.")
-      binary_array = generate_ring_pattern((array_height, array_width), radius_inner, radius_outer)
-      file_name = f"ring_pattern_radius_{radius_inner}_{radius_outer}"
-      save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width),
-                          radius_inner=radius_inner, radius_outer=radius_outer)
-      return
-    if configuration_type == 6:
-        while True:
-            try:
-                turns_input = input("Enter the number of turns for the spiral pattern: ")
-                turns = int(turns_input)
-                if turns <= 0:
-                    raise ValueError("Number of turns must be a positive integer.")
-                break
-            except ValueError:
-                print("Invalid input. Please enter a valid integer.")
+    try:
+        print("Initializing data directory and spectrometer...")
+        time_interval_seconds, number_of_spectra, integration_time_ms, total_duration_seconds, time_background = get_measurement_settings()
+        data_directory, background_file_path, spectrometer = initialize_data_and_spectrometer(integration_time_ms)
 
-        binary_array = generate_spiral_pattern((array_height, array_width), micromirror_pitch, turns)
-        file_name = f"spiral_pattern_{turns}_turns"
-        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, slit_locations, alternate_size, (array_height, array_width), radius=radius, turns=turns)
-        return
-    if configuration_type == 7:
-        while True:
-            try:
-                density_input = input("Enter the density of the X_shaped lines (e.g., 1 for every pixel, 2 for every second pixel): ")
-                density = int(density_input)
-                if density <= 0:
-                    raise ValueError("Density must be a positive integer.")
-                break
-            except ValueError:
-                print("Invalid input. Please enter a valid integer.")
-        while True:
-            try:
-                thickness_input = input("Enter the thickness of the X-shaped lines in pixels (default is 1): ")
-                thickness = int(thickness_input) if thickness_input.strip() else 1
-                if thickness <= 0:
-                    raise ValueError("Thickness must be a positive integer.")
-                break
-            except ValueError:
-                print("Invalid input. Please enter a valid integer.")
-        binary_array = generate_X_shaped_pattern((array_height, array_width), density, thickness)
-        file_name = f"X_shaped_pattern_density_{density}_thickness_{thickness}pixel"
-        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width), thickness=thickness)
-        return
-    if configuration_type == 8:      
-        binary_array = generate_smiley_face_pattern((array_height, array_width))
-        file_name = "smiley_face_pattern"
-        save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width))
-        return
-    else:
-        slits_type = configuration_type
-    while True:
-        print("\nChoose an option:")
-        print("1. Specific positions")
-        print("2. Alternate slits")
-        option = input("Enter your choice (1 or 2): ")
-        if option.isdigit() and int(option) in [1, 2]:
-            option = int(option)
-            break
-        else:
-            print("Invalid option. Please choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
-    if option == 1:
-        while True:
-            print("\nChoose an option:")
-            print("1. Single position")
-            print("2. Multiple positions")
-            print("3. Range of positions")
-            slit_option = input("Enter your choice (1, 2, or 3): ")
-            if slit_option.isdigit() and int(slit_option) in [1, 2, 3]:
-                slit_option = int(slit_option)
-                break
-            else:
-                print("Invalid option. Please choose 1 for 'Single position', 2 for 'Multiple positions', or 3 for 'Range of positions'.")
-        slit_input_info = "Info: single position / position_1, position_2, position_3,... / range: 'start' to 'end'"
-        print(slit_input_info)
-        while True:
-            try:
-                slit_input = input(f"Enter slit location (allowed values: 0 to {array_height - 1}) for {'horizontal' if slits_type == 1 else 'vertical'} slits: ")
-                slit_locations = parse_slit_input(slit_input)
-                if (slits_type == 1 and any(slit < 0 or slit >= array_height for slit in slit_locations)) or (slits_type == 2 and any(slit < 0 or slit >= array_width for slit in slit_locations)):
-                    raise ValueError(f"Invalid slit location. Please enter values in the range 0 to {array_height - 1}." if slits_type == 1 else f"Invalid slit location. Please enter values in the range 0 to {array_width - 1}.")
-                else:
-                    break
-            except ValueError as e:
-                print(e)
-        binary_array = generate_specific_positions((array_height, array_width), slits_type, slit_locations)
-    elif option == 2:
-        while True:
-            print("\nChoose an option:")
-            print("1. Slits")
-            print("2. Checkerboard")
-            alternate_option = input("Enter your choice (1 or 2): ")
-            if alternate_option.isdigit() and int(alternate_option) in [1, 2]:
-                alternate_option = int(alternate_option)
-                break
-            else:
-                print("Invalid option. Please choose 1 for 'Slits' or 2 for 'Checkerboard'.")
-        if alternate_option == 1:
-            orientation = 'vertical' if slits_type == 2 else 'horizontal'
-            while True:
-                try:
-                    allowed_range = (1, array_height) if slits_type == 1 else (1, array_width)
-                    slit_width_input = input(f"Enter pixel slit width (allowed values: {allowed_range[0]} to {allowed_range[1]}): ")
-                    if not slit_width_input:
-                        raise ValueError("Slit width cannot be empty. Please enter a value.")
-                    slit_width = int(slit_width_input)
-                    if not (allowed_range[0] <= slit_width <= allowed_range[1]):
-                        raise ValueError(f"Invalid slit width. Please enter a value in the range {allowed_range[0]} to {allowed_range[1]}.")
-                    break
-                except ValueError as e:
-                    print(e)
-            while True:
-                try:
-                    slit_spacing_input = input(f"Enter pixel slit spacing (allowed values: 1 to {allowed_range[1]}): ")
-                    if not slit_spacing_input:
-                        raise ValueError("Slit spacing cannot be empty. Please enter a value.")
-                    slit_spacing = int(slit_spacing_input)
-                    if not (1 <= slit_spacing <= allowed_range[1]):
-                        raise ValueError(f"Invalid slit spacing. Please enter a value in the range 1 to {allowed_range[1]}.")
-                    break
-                except ValueError as e:
-                    print(e)
-            binary_array = generate_alternate_slits((array_height, array_width), slits_type, slit_width, slit_spacing, orientation)
-            file_name = f"{slits_type}_slits_width_{slit_width}pixel_spacing_{slit_spacing}pixel"
-        elif alternate_option == 2:
-            while True:
-                try:
-                    unit_size_input = input("Enter unit size (pixels per unit) in the checkerboard: ")
-                    if not unit_size_input:
-                        raise ValueError("Unit size cannot be empty. Please enter a value.")
-                    unit_size = int(unit_size_input)
-                    if unit_size <= 0:
-                        raise ValueError("Invalid unit size. Please enter a positive value.")
-                    break
-                except ValueError as e:
-                    print(e)
-            binary_array = generate_alternate_slits((array_height, array_width), slits_type, unit_size, unit_size, checkerboard=True)
-            file_name = f"checkerboard_unit_{unit_size}"
-        else:
-            print("Invalid option. Choose 1 for 'Slits' or 2 for 'Checkerboard'.")
-            return
-    else:
-        print("Invalid option. Choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
-        return
-    if binary_array is not None:
-        if option == 1:
-            if slit_locations is not None:
-                slit_positions_str = '_'.join(map(str, slit_locations))
-                file_name = f"{slits_type}_specific_positions_{slit_positions_str}"
-            else:
-                file_name = f"{slits_type}_no_slits"
-        elif option == 2:
-            if alternate_option == 2:
-                file_name = "checkerboard"
-            else:
-                file_name = f"{slits_type}_slits_width_{slit_width}pixel_spacing_{slit_spacing}pixel"
-        else:
-            print("Invalid option. Choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
-            return
-        save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations, alternate_size, (array_height, array_width), slit_width, slit_spacing, unit_size)
+        print("Checking and handling background spectrum...")
+        background_wavelengths, avg_background = check_and_handle_background_spectrum(background_file_path, spectrometer, time_interval_seconds, integration_time_ms, time_background)
+
+        print("Recording or loading spectrum without fiber...")
+        wavelengths, avg_spectrum_without_fiber = record_or_load_spectrum_without_fiber(spectrometer, data_directory, time_interval_seconds, integration_time_ms, time_background, avg_background)
+
+        spectrum_with_fiber_filename, spectrum_with_fiber_averaged_filename = generate_filenames_with_fiber(data_directory, integration_time_ms)
+        spectrum_without_fiber_filename, spectrum_without_fiber_averaged_filename = generate_filenames_without_fiber(data_directory, integration_time_ms)
+
+        print("Start recording spectra...")
+        spectra, timestamps = record_spectra(spectrometer, time_interval_seconds, integration_time_ms, total_duration_seconds, avg_background)
+
+        print("Processing and saving data...")
+        process_and_save_data(data_directory, spectra, timestamps, integration_time_ms)
+        
+        print("Calculating and saving effective fiber spectrum...")
+        effective_fiber_spectrum_filename = calculate_and_save_effective_fiber_spectrum(spectrum_with_fiber_averaged_filename, spectrum_without_fiber_averaged_filename)
+        
+        print("Calculating normalized power percentage...")
+        power_percentage = normalize_power()
+        
+        print("Calculating and saving effective fiber transmission...")
+        calculate_and_save_effective_fiber_transmission(effective_fiber_spectrum_filename, power_percentage)
+        
+    except Exception as e:
+        print("An error occurred:", str(e))
+    finally:
+        print("Closing spectrometer...")
+        close_spectrometer(spectrometer)
+
 if __name__ == "__main__":
     main()
