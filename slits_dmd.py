@@ -50,15 +50,21 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     if center_coordinates is not None:
         file_name_without_suffix += f'_({center_coordinates[0]},{center_coordinates[1]})'
     if slits_type == 5:
-        file_name_display = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels_display"
-    if slits_type == 6:
-        file_name_display = f"{file_name_without_suffix}_display"
-    if slits_type == 7:
+        file_name_display = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels_density_{density}_display"
+        file_name_pixels = f"{file_name_without_suffix}_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels_density_{density}"
+    elif slits_type == 6:
         file_name_display = f"{file_name_without_suffix}_density_{density}_display"
-    if slits_type == 8:
+        file_name_pixels = f"{file_name_without_suffix}_density_{density}"
+    elif slits_type == 7:
         file_name_display = f"{file_name_without_suffix}_density_{density}_display"
+        file_name_pixels = f"{file_name_without_suffix}_density_{density}"
+    elif slits_type == 8:
+        file_name_display = f"{file_name_without_suffix}_density_{density}_display"
+        file_name_pixels = f"{file_name_without_suffix}_density_{density}"
     else:
         file_name_display = f"{file_name_without_suffix}_display"
+        file_name_pixels = f"{file_name_without_suffix}"
+    file_name_pixels = f"{file_name_without_suffix}"
     file_name_pixels = f"{file_name_without_suffix}"
     file_path_display = os.path.join(folder_name, f'{file_name_display}.png')
     file_path_pixels = os.path.join(folder_name, f'{file_name_pixels}.png')
@@ -199,14 +205,14 @@ def generate_X_shaped_pattern(shape, density):
         binary_array[center_y - i:center_y - i + thickness, center_x + i:center_x + i + thickness] = 255
     return binary_array
 
-def generate_diagonal_slits_pattern(shape, density):
+def generate_diagonal_slits_pattern(shape, width_of_diagonal):
     binary_array = np.zeros(shape, dtype=np.uint8)
     center_x, center_y = shape[1] // 2, shape[0] // 2
     max_distance = min(center_y, center_x)
 
-    for i in range(0, max_distance, density):
-        binary_array[center_y - i, center_x - i] = 255
-        binary_array[center_y + i, center_x + i] = 255
+    for i in range(0, max_distance):
+        binary_array[center_y - i, center_x - i : center_x - i + width_of_diagonal] = 255
+        binary_array[center_y + i, center_x + i - width_of_diagonal : center_x + i] = 255
 
     binary_array[:, ::2] = 0  
     binary_array[:, 1::2] = 255  
@@ -358,8 +364,8 @@ def main():
                 break
             except ValueError:
                 print("Invalid input. Please enter a valid integer.")
-    
-        binary_array = generate_diagonal_slits_pattern((array_height, array_width), density)
+        width_of_diagonal = 20
+        binary_array = generate_diagonal_slits_pattern((array_height, array_width), width_of_diagonal)
         file_name = f"diagonal_slits_density_{density}"
         save_output_files(file_name, binary_array, micromirror_pitch, configuration_type, 0, None, None, (array_height, array_width), density=density)
         return
@@ -477,5 +483,3 @@ def main():
         save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations, alternate_size, (array_height, array_width), slit_width, slit_spacing, unit_size)
 if __name__ == "__main__":
     main()
-
-        
