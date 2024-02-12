@@ -370,8 +370,6 @@ def main():
         else:
             print("Invalid option. Choose 1 for 'Specific positions' or 2 for 'Alternate slits'.")
             return
-
         save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations, alternate_size, (array_height, array_width), slit_width, slit_spacing, unit_size)
-
 if __name__ == "__main__":
     main()
