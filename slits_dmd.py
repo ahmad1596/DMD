@@ -16,21 +16,21 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
         file_name_without_suffix = 'circular'
         if radius is not None:
             file_name_without_suffix += f'_{radius}pixels_radius'
-    elif slits_type == 5:  
+    elif slits_type == 5:
         if radius_inner is not None and radius_outer is not None:
             file_name_without_suffix = f'ring_radius_inner_{radius_inner}pixel_outer_{radius_outer}pixels'
-    elif slits_type == 6:  
+    elif slits_type == 6:
         file_name_without_suffix = 'spiral'
         if turns is not None:
             file_name_without_suffix += f'_{turns}_turns'
     elif slits_type == 7:
         file_name_without_suffix = 'X_shaped'
     elif slits_type == 8:
-        file_name_without_suffix = 'diagonal_slits'
+        file_name_without_suffix = f'diagonal_slits_density_{density}' if density is not None else 'diagonal_slits'
     slit_positions_str = ''
     if option == 2:
         file_name_without_suffix = 'checkerboard'
-    if option == 1: 
+    if option == 1:
         if slit_locations is not None:
             slit_positions_str = '_'.join(map(str, slit_locations))
             file_name_without_suffix += f'_specific_positions_{slit_positions_str}'
@@ -64,8 +64,6 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     else:
         file_name_display = f"{file_name_without_suffix}_display"
         file_name_pixels = f"{file_name_without_suffix}"
-    file_name_pixels = f"{file_name_without_suffix}"
-    file_name_pixels = f"{file_name_without_suffix}"
     file_path_display = os.path.join(folder_name, f'{file_name_display}.png')
     file_path_pixels = os.path.join(folder_name, f'{file_name_pixels}.png')
     plot_binary_array_pixels(file_path_pixels, binary_array, array_size, slits_type, option, slit_locations, alternate_size)
@@ -74,6 +72,7 @@ def save_output_files(file_name, binary_array, micromirror_pitch, slits_type, op
     print(f"\nFiles saved in folder '{folder_name}':")
     print(f"1. {file_name_display}.png (size: {array_size[1]} x {array_size[0]})")
     print(f"2. {file_name_pixels}.png (size: {size_pixels[1]} x {size_pixels[0]})")
+
 
 def generate_slits(shape, slits_type, slit_coordinates, alternate_size=None):
     binary_array = np.zeros(shape, dtype=np.uint8)
@@ -205,19 +204,15 @@ def generate_X_shaped_pattern(shape, density):
         binary_array[center_y - i:center_y - i + thickness, center_x + i:center_x + i + thickness] = 255
     return binary_array
 
-def generate_diagonal_slits_pattern(shape, width_of_diagonal):
-    binary_array = np.zeros(shape, dtype=np.uint8)
-    center_x, center_y = shape[1] // 2, shape[0] // 2
-    max_distance = min(center_y, center_x)
+def generate_diagonal_slits_pattern(size, width_of_diagonal):
+    binary_array = np.zeros(size, dtype=np.uint8)
 
-    for i in range(0, max_distance):
-        binary_array[center_y - i, center_x - i : center_x - i + width_of_diagonal] = 255
-        binary_array[center_y + i, center_x + i - width_of_diagonal : center_x + i] = 255
+    min_dimension = min(size)
+    for i in range(min_dimension):
+        binary_array[i, i] = 255
 
-    binary_array[:, ::2] = 0  
-    binary_array[:, 1::2] = 255  
-    
     return binary_array
+
 
 
 def plot_binary_array_display(file_path_display, binary_array, micromirror_pitch, slits_type, option, slit_coordinates=None, alternate_size=None):
@@ -357,8 +352,12 @@ def main():
     if configuration_type == 8:
         while True:
             try:
-                density_input = input("Enter the density of the diagonal slits (e.g., 1 for every pixel, 2 for every second pixel): ")
-                density = int(density_input)
+                density_input = input("Enter the density of the diagonal slits (press Enter for default 1): ")
+                if not density_input:
+                    density = 1
+                else:
+                    density = int(density_input)
+        
                 if density <= 0:
                     raise ValueError("Density must be a positive integer.")
                 break
@@ -483,3 +482,5 @@ def main():
         save_output_files(file_name, binary_array, micromirror_pitch, slits_type, option, slit_locations, alternate_size, (array_height, array_width), slit_width, slit_spacing, unit_size)
 if __name__ == "__main__":
     main()
+
+        
