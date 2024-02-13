@@ -5,6 +5,12 @@ import cv2
 import time
 import matplotlib.pyplot as plt
 
+def create_output_directory(output_directory):
+    import os
+    if not os.path.exists(output_directory):
+        os.makedirs(output_directory)
+        print(f"Output directory '{output_directory}' created.")
+
 def init_camera():
     hCam = ueye.HIDS(0)
     nRet = ueye.is_InitCamera(hCam, None)
@@ -209,9 +215,10 @@ def cleanup_camera(hCam, pcImageMemory, MemID):
 def main():
     hCam, width, height, nBitsPerPixel, pcImageMemory, MemID, bytes_per_pixel, pitch = setup_camera()
     set_camera_settings(hCam)
-    output_directory = r'C:\Users\DELL\Documents\optofluidics-master\optofluidics-master\Python\output_camera\\'
+    output_directory = r'C:\Users\DELL\Documents\optofluidics-master\optofluidics-master\Python\camera_outputs\\'
+    create_output_directory(output_directory)
     frame_path =  output_directory + 'captured_frame.jpg'
-    duration = 10
+    duration = 0.1
     start_live_stream(hCam, pcImageMemory, MemID, width, height, nBitsPerPixel, pitch, bytes_per_pixel, duration)
     capture_single_frame(hCam, pcImageMemory, MemID, width, height, nBitsPerPixel, pitch, bytes_per_pixel, frame_path)
     cleanup_camera(hCam, pcImageMemory, MemID)
