@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 import os
 
 def create_output_directory(output_directory):
-    import os
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
         print(f"Output directory '{output_directory}' created.")
