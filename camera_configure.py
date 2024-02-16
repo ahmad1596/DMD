@@ -116,7 +116,7 @@ def setup_camera():
     reset_camera_defaults(hCam)
     set_display_mode(hCam)
     m_nColorMode = ueye.INT()
-    nBitsPerPixel = ueye.INT(24)
+    nBitsPerPixel = ueye.INT(32)
     if int.from_bytes(sInfo.nColorMode.value, byteorder='big') == ueye.IS_COLORMODE_BAYER:
         ueye.is_GetColorDepth(hCam, nBitsPerPixel, m_nColorMode)
     rectAOI = set_aoi(hCam, sInfo)
