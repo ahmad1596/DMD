@@ -215,8 +215,8 @@ def start_live_stream_and_save_frames(hCam, pcImageMemory, MemID, width, height,
             frame_time = 1000 * elapsed_time / frame_count
             frame_times.append(frame_time)
             print(f"Frame {frame_count}: {frame_time:.2f} ms per frame")
-            frame_path = os.path.join(output_directory, f'captured_frame_{frame_count}.jpg')
-            cv2.imwrite(frame_path, new_frame)  # Save the new frame instead of the original
+            frame_path = os.path.join(output_directory, f'captured_frame_{frame_count}.png')
+            cv2.imwrite(frame_path, new_frame) 
         if frame_count == target_frame_count:
             save_frames = False
     avg_frame_time = sum(frame_times) / len(frame_times)
