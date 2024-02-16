@@ -11,11 +11,16 @@ def create_output_directory(output_directory):
         os.makedirs(output_directory)
         print(f"Output directory '{output_directory}' created.")
 
-def get_pixel_clock(hCam):
+def set_and_get_pixel_clock(hCam, desired_pixel_clock=None):
+    if desired_pixel_clock is not None:
+        nRet = ueye.is_PixelClock(hCam, ueye.IS_PIXELCLOCK_CMD_SET, ueye.c_uint(desired_pixel_clock), ueye.sizeof(ueye.c_uint(desired_pixel_clock)))
+        if nRet != ueye.IS_SUCCESS:
+            print("is_PixelClock (Set) ERROR")
+            return None
     pixel_clock = ueye.c_uint()
     nRet = ueye.is_PixelClock(hCam, ueye.IS_PIXELCLOCK_CMD_GET, pixel_clock, ueye.sizeof(pixel_clock))
     if nRet != ueye.IS_SUCCESS:
-        print("is_PixelClock ERROR")
+        print("is_PixelClock (Get) ERROR")
         return None
     return pixel_clock.value
 
@@ -27,11 +32,16 @@ def get_frame_rate(hCam):
         return None
     return frame_rate.value
 
-def get_exposure_time(hCam):
+def set_and_get_exposure_time(hCam, exposure_time=None):
+    if exposure_time is not None:
+        nRet = ueye.is_Exposure(hCam, ueye.IS_EXPOSURE_CMD_SET_EXPOSURE, ueye.c_double(exposure_time), ueye.sizeof(ueye.c_double(exposure_time)))
+        if nRet != ueye.IS_SUCCESS:
+            print("is_Exposure (Set) ERROR")
+            return None
     exposure_time = ueye.c_double()
     nRet = ueye.is_Exposure(hCam, ueye.IS_EXPOSURE_CMD_GET_EXPOSURE, exposure_time, ueye.sizeof(exposure_time))
     if nRet != ueye.IS_SUCCESS:
-        print("is_Exposure ERROR")
+        print("is_Exposure (Get) ERROR")
         return None
     return exposure_time.value
 
@@ -74,19 +84,20 @@ def set_color_mode(hCam, m_nColorMode):
     if nRet != ueye.IS_SUCCESS:
         print("set_color_mode ERROR:", nRet)
 
-def set_aoi(hCam, sInfo):
+def set_and_get_aoi(hCam, sInfo):
     rectAOI = ueye.IS_RECT()
-    nRet = ueye.is_AOI(hCam, ueye.IS_AOI_IMAGE_GET_AOI, rectAOI, ueye.sizeof(rectAOI))
-    if nRet != ueye.IS_SUCCESS:
-        print("is_AOI ERROR")
-        return None
     rectAOI.s32Width = sInfo.nMaxWidth // 2
     rectAOI.s32Height = sInfo.nMaxHeight // 2
     nRet = ueye.is_AOI(hCam, ueye.IS_AOI_IMAGE_SET_AOI, rectAOI, ueye.sizeof(rectAOI))
     if nRet != ueye.IS_SUCCESS:
-        print("is_AOI ERROR")
+        print("is_AOI (Set) ERROR")
+        return None
+    nRet = ueye.is_AOI(hCam, ueye.IS_AOI_IMAGE_GET_AOI, rectAOI, ueye.sizeof(rectAOI))
+    if nRet != ueye.IS_SUCCESS:
+        print("is_AOI (Get) ERROR")
         return None
     return rectAOI
+
 
 def allocate_image_memory(hCam, width, height, nBitsPerPixel):
     pcImageMemory = ueye.c_mem_p()
@@ -119,7 +130,7 @@ def setup_camera():
     nBitsPerPixel = ueye.INT(32)
     if int.from_bytes(sInfo.nColorMode.value, byteorder='big') == ueye.IS_COLORMODE_BAYER:
         ueye.is_GetColorDepth(hCam, nBitsPerPixel, m_nColorMode)
-    rectAOI = set_aoi(hCam, sInfo)
+    rectAOI = set_and_get_aoi(hCam, sInfo)
     if rectAOI is None:
         ueye.is_ExitCamera(hCam)
         return None
@@ -145,21 +156,11 @@ def activate_camera_and_setup_image_memory(hCam, pcImageMemory, MemID, width, he
         return False
     return True
 
-def set_exposure_time(hCam, exposure_time):
-    nRet = ueye.is_Exposure(hCam, ueye.IS_EXPOSURE_CMD_SET_EXPOSURE, ueye.c_double(exposure_time), ueye.sizeof(ueye.c_double(exposure_time)))
-    if nRet != ueye.IS_SUCCESS:
-        print("is_Exposure ERROR")
-
 def set_master_gain_to_zero(hCam):
     enable_auto_gain = 0.0
     ret = ueye.is_SetAutoParameter(hCam, ueye.IS_SET_ENABLE_AUTO_GAIN, ueye.c_double(enable_auto_gain), None)
     if ret != ueye.IS_SUCCESS:
         print("Error setting auto gain control")
-
-def set_camera_settings(hCam):
-    set_master_gain_to_zero(hCam)
-    reduced_exposure_time = 1  # in milliseconds
-    set_exposure_time(hCam, reduced_exposure_time)
 
 def print_camera_settings_info(sInfo, rectAOI, width, height, nBitsPerPixel):
     print("\nCamera Information:")
@@ -220,12 +221,14 @@ def start_live_stream_and_save_frames(hCam, pcImageMemory, MemID, width, height,
         if frame_count == target_frame_count:
             save_frames = False
     avg_frame_time = sum(frame_times) / len(frame_times)
+    avg_fps = 1 / (avg_frame_time / 1000)
     print(f"\nTotal Number of Frames: {frame_count} frames")
     print(f"Total Time Taken: {elapsed_time:.2f} seconds")
     print(f"Average Frame Time: {avg_frame_time:.2f} ms per frame")
     cv2.destroyAllWindows()
     plot_frame_times(frame_times, frame_count, elapsed_time, avg_frame_time)
-
+    print(f"Average FPS: {avg_fps:.2f} fps")
+    
 def plot_frame_times(frame_times, frame_count, elapsed_time, avg_frame_time):
     fig, ax = plt.subplots(figsize=(8, 6))
     fig.set_dpi(600)
@@ -265,12 +268,12 @@ def capture_single_frame(hCam, pcImageMemory, MemID, width, height, nBitsPerPixe
 
 def main():
     hCam, width, height, nBitsPerPixel, pcImageMemory, MemID, bytes_per_pixel, pitch = setup_camera()
-    set_camera_settings(hCam)
-    pixel_clock = get_pixel_clock(hCam)
+    set_master_gain_to_zero(hCam)
+    pixel_clock = set_and_get_pixel_clock(hCam, desired_pixel_clock = 84)
     frame_rate = get_frame_rate(hCam)
-    exposure_time = get_exposure_time(hCam)
+    exposure_time = set_and_get_exposure_time(hCam, exposure_time = 1.0)
     sInfo = get_sensor_info(hCam)
-    rectAOI = set_aoi(hCam, sInfo)
+    rectAOI = set_and_get_aoi(hCam, sInfo)
     print_camera_settings_info(sInfo, rectAOI, width, height, nBitsPerPixel)
     output_directory = r'C:\Users\DELL\Documents\optofluidics-master\optofluidics-master\Python\camera_outputs\\'
     create_output_directory(output_directory)
