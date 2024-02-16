@@ -235,9 +235,7 @@ def plot_frame_times(frame_times, frame_count, elapsed_time, avg_frame_time):
     ax.tick_params(axis="both", which="major", labelsize=12, direction="in")
     ax.grid(color="gray", linestyle="--", linewidth=0.5)
     mean_time = avg_frame_time
-    median_time = sorted(frame_times)[len(frame_times)
-
- // 2]
+    median_time = sorted(frame_times)[len(frame_times)// 2]
     ax.errorbar(
         range(1, len(frame_times) + 1),
         frame_times,
