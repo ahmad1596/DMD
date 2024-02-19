@@ -2,9 +2,8 @@
 from pyueye import ueye
 import numpy as np
 import cv2
-import time
-import matplotlib.pyplot as plt
 import os
+import matplotlib.pyplot as plt
 
 def create_output_directory(output_directory):
     if not os.path.exists(output_directory):
@@ -98,7 +97,6 @@ def set_and_get_aoi(hCam, sInfo):
         return None
     return rectAOI
 
-
 def allocate_image_memory(hCam, width, height, nBitsPerPixel):
     pcImageMemory = ueye.c_mem_p()
     MemID = ueye.int()
@@ -186,13 +184,13 @@ def cleanup_camera(hCam, pcImageMemory, MemID):
 def start_live_stream_and_save_frames(hCam, pcImageMemory, MemID, width, height, nBitsPerPixel, pitch, bytes_per_pixel, target_frame_count=10):
     if not activate_camera_and_setup_image_memory(hCam, pcImageMemory, MemID, width, height, nBitsPerPixel, pitch):
         return
-    elapsed_time = 0
     frame_count = 0
-    frame_times = []
-    start_time = 0
     save_frames = False
     output_directory = r'C:\Users\DELL\Documents\optofluidics-master\optofluidics-master\Python\camera_outputs\\'
     create_output_directory(output_directory)
+    frame_counts = []
+    frame_rates = []
+    frames_after_enter = 0
     while True:
         array = ueye.get_data(pcImageMemory, width, height, nBitsPerPixel, pitch, copy=False)
         frame = np.reshape(array, (height.value, width.value, bytes_per_pixel))
@@ -204,54 +202,36 @@ def start_live_stream_and_save_frames(hCam, pcImageMemory, MemID, width, height,
         start_y = (desired_height - resized_frame.shape[0]) // 2
         new_frame[start_y:start_y + resized_frame.shape[0], start_x:start_x + resized_frame.shape[1], :] = resized_frame
         cv2.imshow("Python_uEye_OpenCV", new_frame)
+        frame_rate = get_frame_rate(hCam)
+        frame_counts.append(frame_count)
+        if save_frames:
+            print(f"Frame {frames_after_enter}: {1000/frame_rate:.2f} ms")
+            frame_rates.append(frame_rate)
+            frames_after_enter += 1
+            if frames_after_enter == target_frame_count:
+                save_frames = False
+                average_frame_rate = np.mean(frame_rates)
+                print(f"\nAverage Frame Rate: {average_frame_rate:.2f} fps")
+                average_frame_time = 1 / average_frame_rate
+                print(f"Average Time per Frame: {average_frame_time * 1000:.2f} ms")
         key = cv2.waitKey(1) & 0xFF
         if key == ord('q'):
             break
         elif key == 13:
             save_frames = True
-            start_time = time.perf_counter()
-        if save_frames and frame_count < target_frame_count:
-            frame_count += 1
-            elapsed_time = time.perf_counter() - start_time
-            frame_time = 1000 * elapsed_time / frame_count
-            frame_times.append(frame_time)
-            print(f"Frame {frame_count}: {frame_time:.2f} ms per frame")
-            frame_path = os.path.join(output_directory, f'captured_frame_{frame_count}.png')
-            cv2.imwrite(frame_path, new_frame) 
-        if frame_count == target_frame_count:
-            save_frames = False
-    avg_frame_time = sum(frame_times) / len(frame_times)
-    avg_fps = 1 / (avg_frame_time / 1000)
-    print(f"\nTotal Number of Frames: {frame_count} frames")
-    print(f"Total Time Taken: {elapsed_time:.2f} seconds")
-    print(f"Average Frame Time: {avg_frame_time:.2f} ms per frame")
+    plot_frame_times(frame_rates, target_frame_count)
     cv2.destroyAllWindows()
-    plot_frame_times(frame_times, frame_count, elapsed_time, avg_frame_time)
-    print(f"Average FPS: {avg_fps:.2f} fps")
-    
-def plot_frame_times(frame_times, frame_count, elapsed_time, avg_frame_time):
+
+def plot_frame_times(frame_rates, frame_count):
     fig, ax = plt.subplots(figsize=(8, 6))
     fig.set_dpi(600)
-    ax.set_xlabel("Number of Frames", fontsize=14, fontweight="bold")
-    ax.set_ylabel("Time Taken (milliseconds)", fontsize=14, fontweight="bold")
-    ax.set_title("Time Taken to Record Each Frame", fontsize=16, fontweight="bold")
+    ax.set_xlabel("Frame Count", fontsize=14, fontweight="bold")
+    ax.set_ylabel("Time per Frame (ms)", fontsize=14, fontweight="bold")
+    ax.set_title("Time per Frame vs Frame Count", fontsize=16, fontweight="bold")
     ax.tick_params(axis="both", which="major", labelsize=12, direction="in")
     ax.grid(color="gray", linestyle="--", linewidth=0.5)
-    mean_time = avg_frame_time
-    median_time = sorted(frame_times)[len(frame_times)// 2]
-    ax.errorbar(
-        range(1, len(frame_times) + 1),
-        frame_times,
-        fmt='o',
-        markersize=3,
-        capsize=3,
-        label='Time Taken',
-    )
-    ax.axhline(y=mean_time, color='blue', linestyle='-', label=f"Mean Time: {mean_time:.2f} ms")
-    ax.axhline(y=median_time, color='green', linestyle='-', label=f"Median Time: {median_time:.2f} ms")
-    ax.text(0.63, 0.80, f"Total Frames: {frame_count} frames", transform=ax.transAxes, fontsize=10, color='blue')
-    ax.text(0.63, 0.76, f"Total Time Taken: {elapsed_time:.2f} seconds", transform=ax.transAxes, fontsize=10, color='blue')
-    ax.legend(loc="lower right", fontsize=10)
+    ax.plot(range(1, len(frame_rates) + 1), 1000 / np.array(frame_rates), marker='o', markersize=3, label='Time per Frame')
+    ax.legend(loc="right", fontsize=10)
     plt.show()
 
 def capture_single_frame(hCam, pcImageMemory, MemID, width, height, nBitsPerPixel, pitch, bytes_per_pixel, save_path):
@@ -270,7 +250,6 @@ def main():
     hCam, width, height, nBitsPerPixel, pcImageMemory, MemID, bytes_per_pixel, pitch = setup_camera()
     set_master_gain_to_zero(hCam)
     pixel_clock = set_and_get_pixel_clock(hCam, desired_pixel_clock = 84)
-    frame_rate = get_frame_rate(hCam)
     exposure_time = set_and_get_exposure_time(hCam, exposure_time = 1.0)
     sInfo = get_sensor_info(hCam)
     rectAOI = set_and_get_aoi(hCam, sInfo)
@@ -281,8 +260,7 @@ def main():
     start_live_stream_and_save_frames(hCam, pcImageMemory, MemID, width, height, nBitsPerPixel, pitch, bytes_per_pixel, target_frame_count=10)
     cleanup_camera(hCam, pcImageMemory, MemID)
     print(f"\nPixel Clock: {pixel_clock} MHz")
-    print(f"Frame Rate: {frame_rate} fps")
     print(f"Exposure Time: {exposure_time:.6f} ms")
-    
+
 if __name__ == "__main__":
     main()
