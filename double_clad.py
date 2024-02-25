@@ -9,7 +9,7 @@ def main():
     r_core = 25.5 * um
     r_clad = 34.0 * um  
     r_total = r_core + r_clad
-    x = np.linspace(8 * um, 20 * um, Nx)
+    x = np.linspace(-(25.5+34) * um, (25.5+34) * um, Nx)
     y = x.copy()
     x_mesh, y_mesh = np.meshgrid(x, y)
     r_mesh = np.sqrt(x_mesh**2 + y_mesh**2)
@@ -21,35 +21,37 @@ def main():
 
     # Ellipses for glass
     glass_ellipses = [
-        {"center": (20 * um, 0), "major_axis": 6 * um, "minor_axis": 3 * um, "angle": 0},
-        {"center": (-20 * um, 0), "major_axis": 6 * um, "minor_axis": 3 * um, "angle": 0},
-        {"center": (0, 20 * um), "major_axis": 6 * um, "minor_axis": 3 * um, "angle": np.pi/2},
-        {"center": (0, -20 * um), "major_axis": 6 * um, "minor_axis": 3 * um, "angle": np.pi/2},
-        {"center": (14 * um, 14 * um), "major_axis": 6 * um, "minor_axis": 3 * um, "angle": -np.pi/4},
-        {"center": (-14 * um, -14 * um), "major_axis": 6 * um, "minor_axis": 3 * um, "angle": -np.pi/4},
-        {"center": (14 * um, -14 * um), "major_axis": 6 * um, "minor_axis": 3 * um, "angle": np.pi/4},
-        {"center": (-14 * um, 14 * um), "major_axis": 6 * um, "minor_axis": 3 * um, "angle": np.pi/4},
+        {"center": (-19.35 * um, 4.72 * um), "major_axis": 11.28 * um, "minor_axis": 10.28 * um, "angle": 166.29},
+        {"center": (-10.30 * um, 17.82 * um), "major_axis": 9.85 * um, "minor_axis": 9.82 * um, "angle": 120.03},
+        {"center": (4.80 * um, 19.92 * um), "major_axis": 10.42 * um, "minor_axis": 9.49 * um, "angle": 76.45},
+        {"center": (17.46 * um, 10.08 * um), "major_axis": 10.70 * um, "minor_axis": 9.91 * um, "angle": 30.00},
+        {"center": (19.58 * um, -4.59 * um), "major_axis": 10.80 * um, "minor_axis": 10.09 * um, "angle": -13.19},
+        {"center": (10.15 * um, -17.15 * um), "major_axis": 11.20 * um, "minor_axis": 10.09 * um, "angle": -59.38},
+        {"center": (-4.73 * um, -19.40 * um), "major_axis": 11.36 * um, "minor_axis": 9.97 * um, "angle": -103.70},
+        {"center": (-16.85 * um, -11.15 * um), "major_axis": 10.70 * um, "minor_axis": 10.60 * um, "angle": -147.51},
     ]
 
     # Ellipses for air
     air_ellipses = [
-        {"center": (20 * um, 0), "major_axis": 5 * um, "minor_axis": 2 * um, "angle": 0},
-        {"center": (-20 * um, 0), "major_axis": 5 * um, "minor_axis": 2 * um, "angle": 0},
-        {"center": (0, 20 * um), "major_axis": 5 * um, "minor_axis": 2 * um, "angle": np.pi/2},
-        {"center": (0, -20 * um), "major_axis": 5 * um, "minor_axis": 2 * um, "angle": np.pi/2},
-        {"center": (14 * um, 14 * um), "major_axis": 5 * um, "minor_axis": 2 * um, "angle": -np.pi/4},
-        {"center": (-14 * um, -14 * um), "major_axis": 5 * um, "minor_axis": 2 * um, "angle": -np.pi/4},
-        {"center": (14 * um, -14 * um), "major_axis": 5 * um, "minor_axis": 2 * um, "angle": np.pi/4},
-        {"center": (-14 * um, 14 * um), "major_axis": 5 * um, "minor_axis": 2 * um, "angle": np.pi/4},
+        {"center": (-19.35 * um, 4.72 * um), "major_axis": 10.88 * um, "minor_axis": 9.88 * um, "angle": 166.29},
+        {"center": (-10.30 * um, 17.82 * um), "major_axis": 9.45 * um, "minor_axis": 9.42 * um, "angle": 120.03},
+        {"center": (4.80 * um, 19.92 * um), "major_axis": 10.02 * um, "minor_axis": 9.09 * um, "angle": 76.45},
+        {"center": (17.46 * um, 10.08 * um), "major_axis": 10.30 * um, "minor_axis": 9.51 * um, "angle": 30.00},
+        {"center": (19.58 * um, -4.59 * um), "major_axis": 10.40 * um, "minor_axis": 9.69 * um, "angle": -13.19},
+        {"center": (10.15 * um, -17.15 * um), "major_axis": 10.80 * um, "minor_axis": 9.69 * um, "angle": -59.38},
+        {"center": (-4.73 * um, -19.40 * um), "major_axis": 10.96 * um, "minor_axis": 9.57 * um, "angle": -103.70},
+        {"center": (-16.85 * um, -11.15 * um), "major_axis": 10.30 * um, "minor_axis": 10.20 * um, "angle": -147.51},
     ]
 
     for ellipse_params in glass_ellipses + air_ellipses:
+        ellipse_params["major_axis"] /= 2
+        ellipse_params["minor_axis"] /= 2
         center = ellipse_params["center"]
         major_axis = ellipse_params["major_axis"]
         minor_axis = ellipse_params["minor_axis"]
-        angle = ellipse_params["angle"]
-        x_rotated = (x_mesh - center[0]) * np.cos(angle) - (y_mesh - center[1]) * np.sin(angle)
-        y_rotated = (x_mesh - center[0]) * np.sin(angle) + (y_mesh - center[1]) * np.cos(angle)
+        angle = np.deg2rad(ellipse_params["angle"]) 
+        x_rotated = (x_mesh - center[0]) * np.cos(angle) + (y_mesh - center[1]) * np.sin(angle)
+        y_rotated = (y_mesh - center[1]) * np.cos(angle) - (x_mesh - center[0]) * np.sin(angle)
         ellipse_mask = (
             (x_rotated / major_axis) ** 2
             + (y_rotated / minor_axis) ** 2
