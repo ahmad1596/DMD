@@ -3,13 +3,13 @@ from matplotlib import pyplot as plt
 
 def main():
     um = 1e-6
-    Nx = 1000
+    Nx = 401
     n_silica = 1.45
     n_air = 1.0  
     r_core = 25.5 * um
     r_clad = 34.0 * um  
     r_total = r_core + r_clad
-    x = np.linspace(-(25.5+34) * um, (25.5+34) * um, Nx)
+    x = np.linspace(-(26) * um, (26) * um, Nx)
     y = x.copy()
     x_mesh, y_mesh = np.meshgrid(x, y)
     r_mesh = np.sqrt(x_mesh**2 + y_mesh**2)
