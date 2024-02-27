@@ -1,238 +1,270 @@
 import numpy as np
-import scipy.sparse 
+from scipy import sparse
 from scipy.sparse import csr_matrix
-from scipy.sparse.linalg import eigs, inv
 from matplotlib import pyplot as plt
 import time
 
-def ModeSolverFD(dx, n, lambda_, beta, NoModes):
-    
+def check_errors(n, lam, dx):
     if n.shape[1] != n.shape[0]:
-        raise ValueError('Expecting square problem space...')
-    if lambda_ / dx < 10:
-        print('lambda_/dx < 10: This will likely cause discretization errors...')
-    
+        print('Expecting square problem space...\n')
+    if lam / dx < 10:
+        print('lam/dx < 10: this will likely cause discretization errors...\n')
+
+def ColumnToMatrix(C, Nx, Ny):
+    C = np.reshape(C, (Nx, Ny))
+    M = np.transpose(C)
+    return M
+
+def MatrixToColumn(M): 
+    M = np.transpose(M)
+    C = M.reshape(-1,1)
+    return C
+
+def initialize_parameters(n, lam, dx):
     eps0 = 8.85e-12
     mu0 = 4 * np.pi * 10**-7
     c = 3e8
-    
-    if 'NoModes' not in locals():
-        NoModes = 1
-
     Nx = n.shape[0]
-    f = c / lambda_
+    f = c / lam
     w = 2 * np.pi * f
-    k0 = 2 * np.pi / lambda_
-    
+    k0 = 2 * np.pi / lam
     PML_Depth = 10
     PML_TargetLoss = 1e-5
     PML_PolyDegree = 3
-    
     PML_SigmaMax = (PML_PolyDegree + 1) / 2 * eps0 * c / PML_Depth / dx * np.log(1 / PML_TargetLoss)
-    Epsr = np.square(n)
+    Epsr = n**2
     Epsr = MatrixToColumn(Epsr)
-    
+    return eps0, mu0, c, Nx, f, w, k0, PML_Depth, PML_TargetLoss, PML_PolyDegree, PML_SigmaMax, Epsr
+
+def calculate_Ux_Uy_Vx_Vy(Nx):
     print('Calculating Ux, Uy, Vx, Vy...\n') 
-    I = scipy.sparse.eye(Nx * Nx)
+    I = sparse.eye(Nx * Nx)
+    I = sparse.csr_matrix(I)
     idx_x = 0
     idx_y = 1
-    Epsx = np.zeros(Nx * Nx)
-    Epsy = np.zeros(Nx * Nx)
-    Epsz = np.zeros(Nx * Nx)
-    Ax_idxi = np.zeros(2 * Nx * Nx, dtype=int)
-    Ax_idxj = np.zeros(2 * Nx * Nx, dtype=int)
-    Ax_vals = np.zeros(2 * Nx * Nx, dtype=complex)
-    Ay_idxi = np.zeros(2 * Nx * Nx, dtype=int)
-    Ay_idxj = np.zeros(2 * Nx * Nx, dtype=int)
-    Ay_vals = np.zeros(2 * Nx * Nx, dtype=complex)
-    Bx_idxi = np.zeros(2 * Nx * Nx, dtype=int)
-    Bx_idxj = np.zeros(2 * Nx * Nx, dtype=int)
-    Bx_vals = np.zeros(2 * Nx * Nx, dtype=complex)
-    By_idxi = np.zeros(2 * Nx * Nx, dtype=int)
-    By_idxj = np.zeros(2 * Nx * Nx, dtype=int)
-    By_vals = np.zeros(2 * Nx * Nx, dtype=complex)
-    Cx_idxi = np.zeros(2 * Nx * Nx, dtype=int)
-    Cx_idxj = np.zeros(2 * Nx * Nx, dtype=int)
-    Cx_vals = np.zeros(2 * Nx * Nx, dtype=complex)
-    Cy_idxi = np.zeros(2 * Nx * Nx, dtype=int)
-    Cy_idxj = np.zeros(2 * Nx * Nx, dtype=int)
-    Cy_vals = np.zeros(2 * Nx * Nx, dtype=complex)
-    Dx_idxi = np.zeros(2 * Nx * Nx, dtype=int)
-    Dx_idxj = np.zeros(2 * Nx * Nx, dtype=int)
-    Dx_vals = np.zeros(2 * Nx * Nx, dtype=complex)
-    Dy_idxi = np.zeros(2 * Nx * Nx, dtype=int)
-    Dy_idxj = np.zeros(2 * Nx * Nx, dtype=int)
-    Dy_vals = np.zeros(2 * Nx * Nx, dtype=complex)
+    Epsx = np.zeros((1, Nx * Nx))
+    Epsy = np.zeros((1, Nx * Nx))
+    Epsz = np.zeros((1, Nx * Nx))
+    Ax_idxi = np.zeros((1, 2 * Nx * Nx + 1))
+    Ax_idxj = np.zeros((1, 2 * Nx * Nx + 1))
+    Ax_vals = np.zeros((1, 2 * Nx * Nx + 1), dtype=complex)
+    Ay_idxi = np.zeros((1, 2 * Nx * Nx + 1))
+    Ay_idxj = np.zeros((1, 2 * Nx * Nx + 1))
+    Ay_vals = np.zeros((1, 2 * Nx * Nx + 1), dtype=complex)
+    Bx_idxi = np.zeros((1, 2 * Nx * Nx + 1))
+    Bx_idxj = np.zeros((1, 2 * Nx * Nx + 1))
+    Bx_vals = np.zeros((1, 2 * Nx * Nx + 1), dtype=complex)
+    By_idxi = np.zeros((1, 2 * Nx * Nx + 1))
+    By_idxj = np.zeros((1, 2 * Nx * Nx + 1))
+    By_vals = np.zeros((1, 2 * Nx * Nx + 1), dtype=complex)
+    Cx_idxi = np.zeros((1, 2 * Nx * Nx + 1))
+    Cx_idxj = np.zeros((1, 2 * Nx * Nx + 1))
+    Cx_vals = np.zeros((1, 2 * Nx * Nx + 1), dtype=complex)
+    Cy_idxi = np.zeros((1, 2 * Nx * Nx + 1))
+    Cy_idxj = np.zeros((1, 2 * Nx * Nx + 1))
+    Cy_vals = np.zeros((1, 2 * Nx * Nx + 1), dtype=complex)
+    Dx_idxi = np.zeros((1, 2 * Nx * Nx + 1))
+    Dx_idxj = np.zeros((1, 2 * Nx * Nx + 1))
+    Dx_vals = np.zeros((1, 2 * Nx * Nx + 1), dtype=complex)
+    Dy_idxi = np.zeros((1, 2 * Nx * Nx + 1))
+    Dy_idxj = np.zeros((1, 2 * Nx * Nx + 1))
+    Dy_vals = np.zeros((1, 2 * Nx * Nx + 1), dtype=complex)
+    return I, idx_x, idx_y, Epsx, Epsy, Epsz, Ax_idxi, Ax_idxj, Ax_vals, Ay_idxi, Ay_idxj, Ay_vals, Bx_idxi, Bx_idxj, Bx_vals, By_idxi, By_idxj, By_vals, Cx_idxi, Cx_idxj, Cx_vals, Cy_idxi, Cy_idxj, Cy_vals, Dx_idxi, Dx_idxj, Dx_vals, Dy_idxi, Dy_idxj, Dy_vals
 
-    for i in range(Nx * Nx):
-        idx_x += 1
-        if idx_x > Nx:
-            idx_y += 1
-            idx_x = 1
-    
-        West_Dist = idx_x - 1
-        North_Dist = idx_y - 1
-        East_Dist = Nx - idx_x
-        South_Dist = Nx - idx_y
-    
-        # Epsx, Epsy, Epsz
-        if i - Nx >= 0:
-            Epsx[i] = (Epsr[i] + Epsr[i - Nx]) / 2
-        else:
-            Epsx[i] = Epsr[i]
-    
-        if i - 1 >= 0:
-            Epsy[i] = (Epsr[i] + Epsr[i - 1]) / 2
-        else:
-            Epsy[i] = Epsr[i]
-    
-        if i - 1 - Nx >= 0:
-            Epsz[i] = (Epsr[i] + Epsr[i - 1] + Epsr[i - Nx] + Epsr[i - 1 - Nx]) / 4
-        else:
-            Epsz[i] = Epsr[i]
+def calculate_index_distances(Nx, idx_x, idx_y):
+    idx_x += 1
+    if idx_x > Nx:
+        idx_y += 1
+        idx_x = 1
+    West_Dist = idx_x - 1
+    North_Dist = idx_y - 1
+    East_Dist = Nx - idx_x
+    South_Dist = Nx - idx_y
+    return idx_x, idx_y, West_Dist, North_Dist, East_Dist, South_Dist
 
+def calculate_Eps_values(i, Nx, Epsr):
+    if i - 1 - Nx > 0:
+        Epsx_i = (Epsr[i - 1] + Epsr[i - 1 - Nx]) / 2
+    else:
+        Epsx_i = Epsr[i - 1]
+    if i - 1 - 1 > 0:
+        Epsy_i = (Epsr[i - 1] + Epsr[i - 2]) / 2
+    else:
+        Epsy_i = Epsr[i - 1]
+    if i - 1 - 1 - Nx > 0:
+        Epsz_i = (Epsr[i - 1] + Epsr[i - 2] + Epsr[i - Nx - 1] + Epsr[i - 1 - Nx - 1]) / 4
+    else:
+        Epsz_i = Epsr[i - 1]
+    return Epsx_i, Epsy_i, Epsz_i
+
+def ModeSolverFD(dx, n, lam, beta, NoModes):
+    check_errors(n, lam, dx)
+    eps0, mu0, c, Nx, f, w, k0, PML_Depth, PML_TargetLoss, PML_PolyDegree, PML_SigmaMax, Epsr = initialize_parameters(n, lam, dx)
+    I, idx_x, idx_y, Epsx, Epsy, Epsz, Ax_idxi, Ax_idxj, Ax_vals, Ay_idxi, Ay_idxj, Ay_vals, Bx_idxi, Bx_idxj, Bx_vals, By_idxi, By_idxj, By_vals, Cx_idxi, Cx_idxj, Cx_vals, Cy_idxi, Cy_idxj, Cy_vals, Dx_idxi, Dx_idxj, Dx_vals, Dy_idxi, Dy_idxj, Dy_vals = calculate_Ux_Uy_Vx_Vy(Nx)
+  
+    for i in range(1,Nx*Nx+1):
+        idx_x, idx_y, West_Dist, North_Dist, East_Dist, South_Dist = calculate_index_distances(Nx, idx_x, idx_y)
+        Epsx[:, i - 1], Epsy[:, i - 1], Epsz[:, i - 1] = calculate_Eps_values(i, Nx, Epsr)
 
         # Sx, Sy
         if West_Dist <= PML_Depth:
-            Sx_Ey = 1 - PML_SigmaMax * (1 - West_Dist / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsy[i])
-            Sx_Ez = 1 - PML_SigmaMax * (1 - West_Dist / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsz[i])
-            Sx_Hy = 1 - PML_SigmaMax * (1 - (West_Dist - 0.5) / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsx[i])
-            Sx_Hz = 1 - PML_SigmaMax * (1 - (West_Dist - 0.5) / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsr[i])
-    
+            Sx_Ey = 1-PML_SigmaMax*(1-West_Dist/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsy[:,i-1])
+            Sx_Ez = 1-PML_SigmaMax*(1-West_Dist/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsz[:,i-1])
+            Sx_Hy = 1-PML_SigmaMax*(1-(West_Dist-0.5)/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsx[:,i-1])
+            Sx_Hz = 1-PML_SigmaMax*(1-(West_Dist-0.5)/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsr[i-1])
         elif East_Dist <= PML_Depth:
-            Sx_Ey = 1 - PML_SigmaMax * (1 - (East_Dist - 0.5) / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsy[i])
-            Sx_Ez = 1 - PML_SigmaMax * (1 - (East_Dist - 0.5) / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsz[i])
-            Sx_Hy = 1 - PML_SigmaMax * (1 - East_Dist / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsx[i])
-            Sx_Hz = 1 - PML_SigmaMax * (1 - East_Dist / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsr[i])
-    
+            Sx_Ey = 1-PML_SigmaMax*(1-(East_Dist-0.5)/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsy[:,i-1])
+            Sx_Ez = 1-PML_SigmaMax*(1-(East_Dist-0.5)/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsz[:,i-1])
+            Sx_Hy = 1-PML_SigmaMax*(1-East_Dist/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsx[:,i-1])
+            Sx_Hz = 1-PML_SigmaMax*(1-East_Dist/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsr[i-1]) 
         if North_Dist <= PML_Depth:
-            Sy_Ex = 1 - PML_SigmaMax * (1 - North_Dist / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsx[i])
-            Sy_Ez = 1 - PML_SigmaMax * (1 - North_Dist / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsz[i])
-            Sy_Hx = 1 - PML_SigmaMax * (1 - (North_Dist - 0.5) / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsy[i])
-            Sy_Hz = 1 - PML_SigmaMax * (1 - (North_Dist - 0.5) / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsr[i])
-    
+            Sy_Ex = 1-PML_SigmaMax*(1-North_Dist/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsx[:,i-1])
+            Sy_Ez = 1-PML_SigmaMax*(1-North_Dist/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsz[:,i-1])
+            Sy_Hx = 1-PML_SigmaMax*(1-(North_Dist-0.5)/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsy[:,i-1])
+            Sy_Hz = 1-PML_SigmaMax*(1-(North_Dist-0.5)/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsr[i-1])
         elif South_Dist <= PML_Depth:
-            Sy_Ex = 1 - PML_SigmaMax * (1 - (South_Dist - 0.5) / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsx[i])
-            Sy_Ez = 1 - PML_SigmaMax * (1 - (South_Dist - 0.5) / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsz[i])
-            Sy_Hx = 1 - PML_SigmaMax * (1 - South_Dist / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsy[i])
-            Sy_Hz = 1 - PML_SigmaMax * (1 - South_Dist / PML_Depth) ** PML_PolyDegree * 1j / w / eps0 / np.sqrt(Epsr[i])
-
-        # Ax
-        Ax_idxi[2 * i] = i
-        Ax_idxj[2 * i] = i
-        Ax_vals[2 * i] = -1 / Sx_Ez
-        if i + 1 < Nx * Nx:
-            Ax_idxi[2 * i + 1] = i
-            Ax_idxj[2 * i + 1] = i + 1
-            Ax_vals[2 * i + 1] = 1 / Sx_Ez
-    
-        # Bx
-        Bx_idxi[2 * i] = i
-        Bx_idxj[2 * i] = i
-        Bx_vals[2 * i] = -1 / Sx_Ey
-        if i + 1 < Nx * Nx:
-            Bx_idxi[2 * i + 1] = i
-            Bx_idxj[2 * i + 1] = i + 1
-            Bx_vals[2 * i + 1] = 1 / Sx_Ey
-    
-        # Ay
-        Ay_idxi[2 * i] = i
-        Ay_idxj[2 * i] = i
-        Ay_vals[2 * i] = -1 / Sy_Ez
-        if i + Nx < Nx * Nx:
-            Ay_idxi[2 * i + 1] = i
-            Ay_idxj[2 * i + 1] = i + Nx
-            Ay_vals[2 * i + 1] = 1 / Sy_Ez
-    
-        # By
-        By_idxi[2 * i] = i
-        By_idxj[2 * i] = i
-        By_vals[2 * i] = -1 / Sy_Ex
-        if i + Nx < Nx * Nx:
-            By_idxi[2 * i + 1] = i
-            By_idxj[2 * i + 1] = i + Nx
-            By_vals[2 * i + 1] = 1 / Sy_Ex
-    
-        # Cx
-        Cx_idxi[2 * i] = i
-        Cx_idxj[2 * i] = i
-        Cx_vals[2 * i] = 1 / Sx_Hz
-        if i - 1 >= 0:
-            Cx_idxi[2 * i + 1] = i
-            Cx_idxj[2 * i + 1] = i - 1
-            Cx_vals[2 * i + 1] = -1 / Sx_Hz
-    
-        # Dx
-        Dx_idxi[2 * i] = i
-        Dx_idxj[2 * i] = i
-        Dx_vals[2 * i] = 1 / Sx_Hy
-        if i - 1 >= 0:
-            Dx_idxi[2 * i + 1] = i
-            Dx_idxj[2 * i + 1] = i - 1
-            Dx_vals[2 * i + 1] = -1 / Sx_Hy
-    
-        # Cy
-        Cy_idxi[2 * i] = i
-        Cy_idxj[2 * i] = i
-        Cy_vals[2 * i] = 1 / Sy_Hz
-        if i - Nx >= 0:
-            Cy_idxi[2 * i + 1] = i
-            Cy_idxj[2 * i + 1] = i - Nx
-            Cy_vals[2 * i + 1] = -1 / Sy_Hz
-    
-        # Dy
-        Dy_idxi[2 * i] = i
-        Dy_idxj[2 * i] = i
-        Dy_vals[2 * i] = 1 / Sy_Hx
-        if i - Nx >= 0:
-            Dy_idxi[2 * i + 1] = i
-            Dy_idxj[2 * i + 1] = i - Nx
-            Dy_vals[2 * i + 1] = -1 / Sy_Hx                     
-            
-    Ax_vals = Ax_vals[Ax_idxi != 0]
-    Ax_idxj = Ax_idxj[Ax_idxi != 0]
-    Ax_idxi = Ax_idxi[Ax_idxi != 0]
-    Ax = csr_matrix((Ax_vals, (Ax_idxi, Ax_idxj)), shape=(Nx*Nx, Nx*Nx))
-    
-    Ay_vals = Ay_vals[Ay_idxi != 0]
-    Ay_idxj = Ay_idxj[Ay_idxi != 0]
-    Ay_idxi = Ay_idxi[Ay_idxi != 0]
-    Ay = csr_matrix((Ay_vals, (Ay_idxi, Ay_idxj)), shape=(Nx*Nx, Nx*Nx))
-    
-    Bx_vals = Bx_vals[Bx_idxi != 0]
-    Bx_idxj = Bx_idxj[Bx_idxi != 0]
-    Bx_idxi = Bx_idxi[Bx_idxi != 0]
-    Bx = csr_matrix((Bx_vals, (Bx_idxi, Bx_idxj)), shape=(Nx*Nx, Nx*Nx))
-    
-    By_vals = By_vals[By_idxi != 0]
-    By_idxj = By_idxj[By_idxi != 0]
-    By_idxi = By_idxi[By_idxi != 0]
-    By = csr_matrix((By_vals, (By_idxi, By_idxj)), shape=(Nx*Nx, Nx*Nx))
-    
-    Cx_vals = Cx_vals[Cx_idxi != 0]
-    Cx_idxj = Cx_idxj[Cx_idxi != 0]
-    Cx_idxi = Cx_idxi[Cx_idxi != 0]
-    Cx = csr_matrix((Cx_vals, (Cx_idxi, Cx_idxj)), shape=(Nx*Nx, Nx*Nx))
-    
-    Cy_vals = Cy_vals[Cy_idxi != 0]
-    Cy_idxj = Cy_idxj[Cy_idxi != 0]
-    Cy_idxi = Cy_idxi[Cy_idxi != 0]
-    Cy = csr_matrix((Cy_vals, (Cy_idxi, Cy_idxj)), shape=(Nx*Nx, Nx*Nx))
-    
-    Dx_vals = Dx_vals[Dx_idxi != 0]
-    Dx_idxj = Dx_idxj[Dx_idxi != 0]
-    Dx_idxi = Dx_idxi[Dx_idxi != 0]
-    Dx = csr_matrix((Dx_vals, (Dx_idxi, Dx_idxj)), shape=(Nx*Nx, Nx*Nx))
-    
-    Dy_vals = Dy_vals[Dy_idxi != 0]
-    Dy_idxj = Dy_idxj[Dy_idxi != 0]
-    Dy_idxi = Dy_idxi[Dy_idxi != 0]
-    Dy = csr_matrix((Dy_vals, (Dy_idxi, Dy_idxj)), shape=(Nx*Nx, Nx*Nx))
-                        
-    invEpsz = csr_matrix((1.0 / Epsz, (range(Nx * Nx), range(Nx * Nx))), shape=(Nx * Nx, Nx * Nx))
-    Epsx = csr_matrix((Epsx, (range(Nx * Nx), range(Nx * Nx))), shape=(Nx * Nx, Nx * Nx))
-    Epsy = csr_matrix((Epsy, (range(Nx * Nx), range(Nx * Nx))), shape=(Nx * Nx, Nx * Nx))
-    
+            Sy_Ex = 1-PML_SigmaMax*(1-(South_Dist-0.5)/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsx[:,i-1])
+            Sy_Ez = 1-PML_SigmaMax*(1-(South_Dist-0.5)/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsz[:,i-1])
+            Sy_Hx = 1-PML_SigmaMax*(1-South_Dist/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsy[:,i-1])
+            Sy_Hz = 1-PML_SigmaMax*(1-South_Dist/PML_Depth)**PML_PolyDegree*1j/w/eps0/np.sqrt(Epsr[i-1])
+        #Ax
+        Ax_idxi[:,2*i-1] = i
+        Ax_idxj[:,2*i-1] = i
+        Ax_vals[:,2*i-1] = -1/Sx_Ez
+        if i <= Nx*Nx-1:
+            Ax_idxi[:,2*i] = i
+            Ax_idxj[:,2*i] = i+1
+            Ax_vals[:,2*i] = 1/Sx_Ez          
+        #Bx
+        Bx_idxi[:,2*i-1] = i
+        Bx_idxj[:,2*i-1] = i
+        Bx_vals[:,2*i-1] = -1/Sx_Ey
+        if i <= Nx*Nx-1:
+            Bx_idxi[:,2*i] = i
+            Bx_idxj[:,2*i] = i+1
+            Bx_vals[:,2*i] = 1/Sx_Ey
+        #Ay
+        Ay_idxi[:,2*i-1] = i
+        Ay_idxj[:,2*i-1] = i
+        Ay_vals[:,2*i-1] = -1/Sy_Ez   
+        if i+Nx-1 <= Nx*Nx-1:
+            Ay_idxi[:,2*i] = i
+            Ay_idxj[:,2*i] = i+Nx
+            Ay_vals[:,2*i] = 1/Sy_Ez
+        #By
+        By_idxi[:,2*i-1] = i
+        By_idxj[:,2*i-1] = i
+        By_vals[:,2*i-1] = -1/Sy_Ex
+        if i+Nx-1 <= Nx*Nx-1:
+            By_idxi[:,2*i] = i
+            By_idxj[:,2*i] = i + Nx
+            By_vals[:,2*i] = 1/Sy_Ex
+        #Cx
+        Cx_idxi[:,2*i-1] = i
+        Cx_idxj[:,2*i-1] = i
+        Cx_vals[:,2*i-1] = 1/Sx_Hz 
+           
+        if i-2 >= 0:
+            Cx_idxi[:,2*i] = i       
+            Cx_idxj[:,2*i] = i-1
+            Cx_vals[:,2*i] = -1/Sx_Hz
+        #Cy
+        Cy_idxi[:,2*i-1] = i
+        Cy_idxj[:,2*i-1] = i
+        Cy_vals[:,2*i-1] = 1/Sy_Hz
+        if i-Nx-1 >= 0:
+            Cy_idxi[:,2*i] = i
+            Cy_idxj[:,2*i] = i-Nx
+            Cy_vals[:,2*i] = -1/Sy_Hz
+        #Dx
+        Dx_idxi[:,2*i-1] = i
+        Dx_idxj[:,2*i-1] = i
+        Dx_vals[:,2*i-1] = 1/Sx_Hy
+        if i-2 >= 0:
+            Dx_idxi[:,2*i] = i
+            Dx_idxj[:,2*i] = i-1
+            Dx_vals[:,2*i] = -1/Sx_Hy
+        #Dy
+        Dy_idxi[:,2*i-1] = i
+        Dy_idxj[:,2*i-1] = i
+        Dy_vals[:,2*i-1] = 1/Sy_Hx
+        if i-Nx-1 >= 0:
+            Dy_idxi[:,2*i] = i
+            Dy_idxj[:,2*i] = i-Nx
+            Dy_vals[:,2*i] = -1/Sy_Hx
+    Ax_idxi[Ax_idxi == -1] = []
+    Ax_idxj[Ax_idxi == -1] = []
+    Ax_vals[Ax_idxi == -1] = []
+    flatten_Ax_idxi = Ax_idxi.ravel()
+    flatten_Ax_idxj = Ax_idxj.ravel()                       
+    flatten_Ax_vals = Ax_vals.ravel()           
+    Ax = csr_matrix((flatten_Ax_vals, (flatten_Ax_idxi, flatten_Ax_idxj)), shape=(Nx*Nx+1,Nx*Nx+1))
+    Ax = Ax[1:, 1:]
+    Ay_idxi[Ay_idxi == -1] = []
+    Ay_idxj[Ay_idxi == -1] = []
+    Ay_vals[Ay_idxi == -1] = []
+    flatten_Ay_idxi = Ay_idxi.ravel()
+    flatten_Ay_idxj = Ay_idxj.ravel()                       
+    flatten_Ay_vals = Ay_vals.ravel()           
+    Ay = csr_matrix((flatten_Ay_vals, (flatten_Ay_idxi, flatten_Ay_idxj)), shape=(Nx*Nx+1,Nx*Nx+1))
+    Ay = Ay[1:, 1:]
+    Bx_idxi[Bx_idxi == -1] = []
+    Bx_idxj[Bx_idxi == -1] = []
+    Bx_vals[Bx_idxi == -1] = []
+    flatten_Bx_idxi = Bx_idxi.ravel()
+    flatten_Bx_idxj = Bx_idxj.ravel()                       
+    flatten_Bx_vals = Bx_vals.ravel()           
+    Bx = csr_matrix((flatten_Bx_vals, (flatten_Bx_idxi, flatten_Bx_idxj)), shape=(Nx*Nx+1,Nx*Nx+1))
+    Bx = Bx[1:, 1:]  
+    By_idxi[By_idxi == -1] = []
+    By_idxj[By_idxi == -1] = []
+    By_vals[By_idxi == -1] = []
+    flatten_By_idxi = By_idxi.ravel()
+    flatten_By_idxj = By_idxj.ravel()                       
+    flatten_By_vals = By_vals.ravel()           
+    By = csr_matrix((flatten_By_vals, (flatten_By_idxi, flatten_By_idxj)), shape=(Nx*Nx+1,Nx*Nx+1))
+    By = By[1:, 1:]
+    Cx_idxi[Cx_idxi == -1] = []
+    Cx_idxj[Cx_idxi == -1] = []
+    Cx_vals[Cx_idxi == -1] = []
+    flatten_Cx_idxi = Cx_idxi.ravel()
+    flatten_Cx_idxj = Cx_idxj.ravel()                       
+    flatten_Cx_vals = Cx_vals.ravel()           
+    Cx = csr_matrix((flatten_Cx_vals, (flatten_Cx_idxi, flatten_Cx_idxj)), shape=(Nx*Nx+1,Nx*Nx+1))
+    Cx = Cx[1:, 1:]  
+    Cy_idxi[Cy_idxi == -1] = []
+    Cy_idxj[Cy_idxi == -1] = []
+    Cy_vals[Cy_idxi == -1] = []
+    flatten_Cy_idxi = Cy_idxi.ravel()
+    flatten_Cy_idxj = Cy_idxj.ravel()                       
+    flatten_Cy_vals = Cy_vals.ravel()           
+    Cy = csr_matrix((flatten_Cy_vals, (flatten_Cy_idxi, flatten_Cy_idxj)), shape=(Nx*Nx+1,Nx*Nx+1))
+    Cy = Cy[1:, 1:]
+    Dx_idxi[Dx_idxi == -1] = []
+    Dx_idxj[Dx_idxi == -1] = []
+    Dx_vals[Dx_idxi == -1] = []
+    flatten_Dx_idxi = Dx_idxi.ravel()
+    flatten_Dx_idxj = Dx_idxj.ravel()                       
+    flatten_Dx_vals = Dx_vals.ravel()           
+    Dx = csr_matrix((flatten_Dx_vals, (flatten_Dx_idxi, flatten_Dx_idxj)), shape=(Nx*Nx+1,Nx*Nx+1))
+    Dx = Dx[1:, 1:]
+    Dy_idxi[Dy_idxi == -1] = []
+    Dy_idxj[Dy_idxi == -1] = []
+    Dy_vals[Dy_idxi == -1] = []
+    flatten_Dy_idxi = Dy_idxi.ravel()
+    flatten_Dy_idxj = Dy_idxj.ravel()                       
+    flatten_Dy_vals = Dy_vals.ravel()           
+    Dy = csr_matrix((flatten_Dy_vals, (flatten_Dy_idxi, flatten_Dy_idxj)), shape=(Nx*Nx+1,Nx*Nx+1))
+    Dy = Dy[1:, 1:]
+    flatten_Epsx = Epsx.ravel()
+    flatten_Epsy = Epsy.ravel()
+    flatten_Epsz = Epsz.ravel()
+    Epsx = csr_matrix((flatten_Epsx, (np.arange(1,Nx*Nx+1), np.arange(1,Nx*Nx+1))))
+    Epsy = csr_matrix((flatten_Epsy, (np.arange(1,Nx*Nx+1), np.arange(1,Nx*Nx+1))))
+    invEpsz = csr_matrix((1/flatten_Epsz, (np.arange(1,Nx*Nx+1), np.arange(1,Nx*Nx+1))))
+    Epsx = Epsx[1:, 1:]
+    Epsy = Epsy[1:, 1:]
+    invEpsz = invEpsz[1:, 1:]
     Ax = Ax/dx 
     Bx = Bx/dx
     Cx = Cx/dx 
@@ -241,19 +273,19 @@ def ModeSolverFD(dx, n, lambda_, beta, NoModes):
     By = By/dx
     Cy = Cy/dx 
     Dy = Dy/dx
-    
     ## Qxx, Qyy, Qxy, Qyx
     print('Calculating Qs...\n')
-    Qxx = -k0**(-2) * Ax @ Dy @ Cx @ invEpsz @ By + (Epsy + k0**(-2) * Ax @ Dx) @ (k0**2 * np.eye(Nx * Nx) + Cy @ invEpsz @ By)
-    Qyy = -k0**(-2) * Ay @ Dx @ Cy @ invEpsz @ Bx + (Epsx + k0**(-2) * Ay @ Dy) @ (k0**2 * np.eye(Nx * Nx) + Cx @ invEpsz @ Bx)
-    Qxy = k0**(-2) * Ax @ Dy @ (k0**2 * np.eye(Nx * Nx) + Cx @ invEpsz @ Bx) - (Epsy + k0**(-2) * Ax @ Dx) @ Cy @ invEpsz @ Bx
-    Qyx = k0**(-2) * Ay @ Dx @ (k0**2 * np.eye(Nx * Nx) + Cy @ invEpsz @ By) - (Epsx + k0**(-2) * Ay @ Dy) @ Cx @ invEpsz @ By
-    
-    Q = np.block([[Qxx, Qxy], [Qyx, Qyy]])
+    Qxx = -k0**(-2)*Ax*Dy*Cx*invEpsz*By + (Epsy + k0**(-2)*Ax*Dx)*(k0**2*I+Cy*invEpsz*By)
+    Qyy = -k0**(-2)*Ay*Dx*Cy*invEpsz*Bx + (Epsx + k0**(-2)*Ay*Dy)*(k0**2*I+Cx*invEpsz*Bx)
+    Qxy = k0**(-2)*Ax*Dy*(k0**2*I + Cx*invEpsz*Bx) - (Epsy + k0**(-2)*Ax*Dx)*Cy*invEpsz*Bx
+    Qyx = k0**(-2)*Ay*Dx*(k0**2*I + Cy*invEpsz*By) - (Epsx + k0**(-2)*Ay*Dy)*Cx*invEpsz*By
+    QxxQxy = sparse.hstack([Qxx, Qxy])
+    QyxQyy = sparse.hstack([Qyx, Qyy])
+    Q = sparse.vstack([QxxQxy, QyxQyy])
     ## Diagonalisation
     print('Taking Eigenvalues and Eigenvectors...\n')
-
-    eigvalues, eigvectors = eigs(Q, k=NoModes, sigma=np.square(beta))
+    import scipy.sparse.linalg as sla
+    eigvalues, eigvectors = sla.eigs(Q, k = NoModes, sigma = beta**2)
     beta = np.sqrt(np.diag(eigvalues))
     # Ex, Ey, Ez
     print('Calculating Ex, Ey, Ez, Hx, Hy, Hz...\n')
@@ -263,15 +295,13 @@ def ModeSolverFD(dx, n, lambda_, beta, NoModes):
     Hx = np.zeros((Nx*Nx, NoModes), dtype=complex)
     Hy = np.zeros((Nx*Nx, NoModes), dtype=complex)
     Hz = np.zeros((Nx*Nx, NoModes), dtype=complex)     
-    # Inside the loop for i in range(NoModes):
-    for i in range(NoModes):
-        Hx[:, i] = eigvectors[0:Nx * Nx, i]
-        Hy[:, i] = eigvectors[Nx * Nx:2 * Nx * Nx, i]
-        Ez[:, i] = inv(invEpsz) @ (-Dy @ Hx[:, i] + Dx @ Hy[:, i]) / (1j * w * eps0)        
-        Ey[:, i] = (-1j * w * mu0 * Hx[:, i] - Ay @ Ez[:, i]) / (1j * beta[i,i])   
-        Ex[:, i] = (1j * w * mu0 * Hy[:, i] - Ax @ Ez[:, i]) / (1j * beta[i,i])
-        Hz[:, i] = -(-By @ Ex[:, i] + Bx @ Ey[:, i]) / (1j * w * mu0)
-
+    for i in range(0,NoModes):
+        Hx[:,i] = eigvectors[np.arange(0, Nx*Nx), i]
+        Hy[:,i] = eigvectors[np.arange(Nx*Nx,2*Nx*Nx),i]
+        Ez[:,i] = invEpsz*(-Dy*Hx[:,i]+ Dx*Hy[:,i])/1j/w/eps0   
+        Ey[:,i] = (-1j*w*mu0*Hx[:,i] - Ay*Ez[:,i])/1j/beta[i][i]
+        Ex[:,i] = (1j*w*mu0*Hy[:,i] - Ax*Ez[:,i])/1j/beta[i][i]
+        Hz[:,i] = -(-By*Ex[:,i] + Bx*Ey[:,i])/1j/w/mu0    
     ## Results
     RetVal = {}
     RetVal_Ex = {}
@@ -298,7 +328,7 @@ def ModeSolverFD(dx, n, lambda_, beta, NoModes):
     RetVal['beta'] = beta    
     RetVal['n'] = n
     RetVal['dx'] = dx
-    RetVal['lam'] = lambda_
+    RetVal['lam'] = lam
     RetVal['k0'] = k0
     RetVal['Nx'] = Nx
     RetVal['PML_Depth'] = PML_Depth
@@ -307,23 +337,14 @@ def ModeSolverFD(dx, n, lambda_, beta, NoModes):
     RetVal['PML_SigmaMax'] = PML_SigmaMax
     return RetVal, RetVal_Ex, RetVal_Ey, RetVal_Ez, \
     RetVal_Hx, RetVal_Hy, RetVal_Hz, RetVal_Eabs, RetVal_Habs
-    
-def ColumnToMatrix(C, Nx, Ny):
-    M = np.reshape(C, (Nx, Ny)).T
-    return M
-
-def MatrixToColumn(M):
-    M = M.T
-    C = M.flatten()
-    return C
 
 def main():
     # Set up problem
     um = 1e-6
-    lambda_ = 0.65*um
-    k0 = 2*np.pi/lambda_
+    lam = 0.65*um
+    k0 = 2*np.pi/lam
     beta = k0
-    Nx = 41
+    Nx = 100
     NoModes = 2
     n_silica = 1.45
     n_air = 1.0  
@@ -391,18 +412,18 @@ def main():
     plt.show()
     
     dx = x[1] - x[0]
-    lambda_in_nm = lambda_ * 1e9
+    lam_in_nm = lam * 1e9
     dx_in_nm = dx * 1e9
-    lambda_dx_ratio = lambda_ / dx
+    lam_dx_ratio = lam / dx
     
-    print("\nlambda_: {:.2f} nm".format(lambda_in_nm))
+    print("\nlam: {:.2f} nm".format(lam_in_nm))
     print("dx: {:.2f} nm".format(dx_in_nm))
-    print("lambda_/dx: {:.2f}".format(lambda_dx_ratio))
+    print("lam/dx: {:.2f}".format(lam_dx_ratio))
         
     # Call FD solver
     t = time.time()
     RetVal, RetVal_Ex, RetVal_Ey, RetVal_Ez, RetVal_Hx, RetVal_Hy, \
-    RetVal_Hz, RetVal_Eabs, RetVal_Habs = ModeSolverFD(dx, n, lambda_, beta, NoModes)
+    RetVal_Hz, RetVal_Eabs, RetVal_Habs = ModeSolverFD(dx, n, lam, beta, NoModes)
     elapsed = time.time()-t
     print(elapsed)
     # Plot modes
@@ -421,6 +442,7 @@ def main():
         fillplot.set_xlabel('\u03bcm', fontsize=14, fontweight="bold")
         fillplot.set_ylabel('\u03bcm', fontsize=14, fontweight="bold")
         plt.show()
+
 
 if __name__ == "__main__":
     main() 
