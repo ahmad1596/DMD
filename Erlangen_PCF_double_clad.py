@@ -5,10 +5,10 @@ from ModeSolverFD import ModeSolverFD
 
 # Set up problem
 um = 1e-6
-lambda_ = 0.65*um
-k0 = 2*np.pi/lambda_
+lam = 0.65*um
+k0 = 2*np.pi/lam
 beta = k0
-Nx = 41
+Nx = 100
 NoModes = 2
 n_silica = 1.45
 n_air = 1.0  
@@ -76,18 +76,18 @@ fillplot.set_ylabel('\u03bcm', fontsize=14, fontweight="bold")
 plt.show()
 
 dx = x[1] - x[0]
-lambda_in_nm = lambda_ * 1e9
+lam_in_nm = lam * 1e9
 dx_in_nm = dx * 1e9
-lambda_dx_ratio = lambda_ / dx
+lam_dx_ratio = lam / dx
 
-print("\nlambda_: {:.2f} nm".format(lambda_in_nm))
+print("\nlam: {:.2f} nm".format(lam_in_nm))
 print("dx: {:.2f} nm".format(dx_in_nm))
-print("lambda_/dx: {:.2f}".format(lambda_dx_ratio))
+print("lam/dx: {:.2f}".format(lam_dx_ratio))
     
 # Call FD solver
 t = time.time()
 RetVal, RetVal_Ex, RetVal_Ey, RetVal_Ez, RetVal_Hx, RetVal_Hy, \
-RetVal_Hz, RetVal_Eabs, RetVal_Habs = ModeSolverFD(dx, n, lambda_, beta, NoModes)
+RetVal_Hz, RetVal_Eabs, RetVal_Habs = ModeSolverFD(dx, n, lam, beta, NoModes)
 elapsed = time.time()-t
 print(elapsed)
 # Plot modes
@@ -106,5 +106,4 @@ for i in range(0, NoModes):
     fillplot.set_xlabel('\u03bcm', fontsize=14, fontweight="bold")
     fillplot.set_ylabel('\u03bcm', fontsize=14, fontweight="bold")
     plt.show()
-
 
