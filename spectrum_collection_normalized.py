@@ -1,3 +1,5 @@
+##############################################################################################################################################################
+
 import numpy as np
 import os
 import h5py
@@ -30,7 +32,7 @@ file = 3
 with h5py.File(DIRPATH + '\\' + FILENAMES[file], 'r') as f:
     print("\nKeys: %s" % f.keys())
     keys = list(f.keys())
-key = keys[2]
+key = keys[1]
 with h5py.File(DIRPATH + '\\' + FILENAMES[file], 'r') as f:
     g = f[key]
     indices = sorted([d.replace("spectrum_", "") for d in g.keys()])
@@ -71,10 +73,10 @@ with h5py.File(DIRPATH + '\\' + FILENAMES[file], 'r') as f:
         m = np.append(m, delta_time)
 t = np.reshape(m, (1, len(dsets2)))
 data_average = np.sum(data, 1) / len(dsets2)
-data_wl_wavelength = np.zeros((len(data_average), 2), dtype=float)
-data_wl_wavelength[:, 0] = wavelengths
-data_wl_wavelength[:, 1] = data_average
-plot_spectrum(data_wl_wavelength[:, 0], data_wl_wavelength[:, 1],
+data_wl_wavelength_1 = np.zeros((len(data_average), 2), dtype=float)
+data_wl_wavelength_1[:, 0] = wavelengths
+data_wl_wavelength_1[:, 1] = data_average
+plot_spectrum(data_wl_wavelength_1[:, 0], data_wl_wavelength_1[:, 1],
               x_label='Wavelength (nm)', y_label='Intensity (a.u.)',
               title='Average Spectrum',
               legend_label='Intensity at Wavelength')
@@ -97,8 +99,8 @@ folder_name = 'Ref_Spectrum_Data'
 folder_path = os.path.join(DIRPATH, folder_name)
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
-csv_file_path1 = os.path.join(folder_path, "Ref_QE65000_Spectrometer.csv")
-pd.DataFrame(data_wl_wavelength).to_csv(csv_file_path1, header=None, index=None)
+#csv_file_path1 = os.path.join(folder_path, "Ref_QE65000_Spectrometer.csv")
+#pd.DataFrame(data_wl_wavelength).to_csv(csv_file_path1, header=None, index=None)
 
 ##############################################################################################################################################################
 
@@ -153,10 +155,10 @@ with h5py.File(DIRPATH + '\\' + FILENAMES[file], 'r') as f:
         m = np.append(m, delta_time)
 t = np.reshape(m, (1, len(dsets2)))
 data_average = np.sum(data, 1) / len(dsets2)
-data_wl_wavelength = np.zeros((len(data_average), 2), dtype=float)
-data_wl_wavelength[:, 0] = wavelengths
-data_wl_wavelength[:, 1] = data_average
-plot_spectrum(data_wl_wavelength[:, 0], data_wl_wavelength[:, 1],
+data_wl_wavelength_2 = np.zeros((len(data_average), 2), dtype=float)
+data_wl_wavelength_2[:, 0] = wavelengths
+data_wl_wavelength_2[:, 1] = data_average
+plot_spectrum(data_wl_wavelength_2[:, 0], data_wl_wavelength_2[:, 1],
               x_label='Wavelength (nm)', y_label='Intensity (a.u.)',
               title='Average Spectrum',
               legend_label='Intensity at Wavelength')
@@ -179,7 +181,37 @@ folder_name = 'Ref_Spectrum_Data'
 folder_path = os.path.join(DIRPATH, folder_name)
 if not os.path.exists(folder_path):
     os.makedirs(folder_path)
-csv_file_path2 = os.path.join(folder_path, "Ref_USB2000_Spectrometer.csv")
-pd.DataFrame(data_wl_wavelength).to_csv(csv_file_path2, header=None, index=None)
+#csv_file_path2 = os.path.join(folder_path, "Ref_USB2000_Spectrometer.csv")
+#pd.DataFrame(data_wl_wavelength).to_csv(csv_file_path2, header=None, index=None)
+
+##############################################################################################################################################################
+
+df_normalized = pd.DataFrame({
+    'Wavelength': data_wl_wavelength_1[:, 0],
+    'Intensity_1': data_wl_wavelength_1[:, 1],
+    'Intensity_2': data_wl_wavelength_2[:, 1],
+    'Normalized_Intensity': data_wl_wavelength_2[:, 1] / data_wl_wavelength_1[:, 1]
+})
+plot_spectrum(df_normalized['Wavelength'], df_normalized['Normalized_Intensity'],
+              x_label='Wavelength (nm)', y_label='Normalized Intensity',
+              title='Normalized Intensity vs Wavelength',
+              legend_label='Normalized Intensity')
+csv_file_path_normalized = os.path.join(folder_path, "Normalized_Intensity.csv")
+df_normalized.to_csv(csv_file_path_normalized, index=None)
+
+##############################################################################################################################################################
+
+input_wavelength = float(input("Enter the wavelength: "))
+power_percentage = float(input(f"Enter the power percentage at {input_wavelength} nm: "))
+closest_wavelength_index = np.argmin(np.abs(df_normalized['Wavelength'] - input_wavelength))
+closest_wavelength = df_normalized.loc[closest_wavelength_index, 'Wavelength']
+scaled_factor = df_normalized.loc[closest_wavelength_index, 'Normalized_Intensity'] / power_percentage
+df_normalized['Percentage_Transmission'] = df_normalized['Normalized_Intensity'] * scaled_factor
+plot_spectrum(df_normalized['Wavelength'], df_normalized['Percentage_Transmission'],
+              x_label='Wavelength (nm)', y_label='Percentage Transmission (%)',
+              title='Percentage Transmission vs Wavelength',
+              legend_label='Percentage Transmission')
+csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission.csv")
+df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
 ##############################################################################################################################################################
