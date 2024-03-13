@@ -22,17 +22,17 @@ def plot_spectrum(x_values, intensities, x_label, y_label, title, legend_label=N
     
 ##############################################################################################################################################################
 
-date = "2022-03-06T" 
-DIRPATH = os.path.normpath(os.path.abspath('C:/Users/DELL/Downloads'))
+date = "2024-03-05T" 
+DIRPATH = os.path.normpath(os.path.abspath('C:/Users/DELL/Documents/optofluidics-master/optofluidics-master/Python/ahmad_thesis'))
 FILENAMES = os.listdir(DIRPATH)
 print(DIRPATH)
 for i, f in enumerate(FILENAMES):
     print(i, "::", f)
-file = 3
+file = 0
 with h5py.File(DIRPATH + '\\' + FILENAMES[file], 'r') as f:
     print("\nKeys: %s" % f.keys())
     keys = list(f.keys())
-key = keys[1]
+key = keys[0]
 with h5py.File(DIRPATH + '\\' + FILENAMES[file], 'r') as f:
     g = f[key]
     indices = sorted([d.replace("spectrum_", "") for d in g.keys()])
@@ -104,8 +104,8 @@ if not os.path.exists(folder_path):
 
 ##############################################################################################################################################################
 
-date = "2022-03-06T" 
-DIRPATH = os.path.normpath(os.path.abspath('C:/Users/DELL/Downloads'))
+date = "2024-03-10T" 
+DIRPATH = os.path.normpath(os.path.abspath('C:/Users/DELL/Documents/optofluidics-master/optofluidics-master/Python/ahmad_thesis'))
 FILENAMES = os.listdir(DIRPATH)
 print(DIRPATH)
 for i, f in enumerate(FILENAMES):
@@ -114,7 +114,7 @@ file = 3
 with h5py.File(DIRPATH + '\\' + FILENAMES[file], 'r') as f:
     print("\nKeys: %s" % f.keys())
     keys = list(f.keys())
-key = keys[1]
+key = keys[0]
 with h5py.File(DIRPATH + '\\' + FILENAMES[file], 'r') as f:
     g = f[key]
     indices = sorted([d.replace("spectrum_", "") for d in g.keys()])
@@ -190,7 +190,7 @@ df_normalized = pd.DataFrame({
     'Wavelength': data_wl_wavelength_1[:, 0],
     'Intensity_1': data_wl_wavelength_1[:, 1],
     'Intensity_2': data_wl_wavelength_2[:, 1],
-    'Normalized_Intensity': data_wl_wavelength_2[:, 1] / data_wl_wavelength_1[:, 1]
+    'Normalized_Intensity': np.abs(data_wl_wavelength_2[:, 1] / data_wl_wavelength_1[:, 1])
 })
 plot_spectrum(df_normalized['Wavelength'], df_normalized['Normalized_Intensity'],
               x_label='Wavelength (nm)', y_label='Normalized Intensity',
@@ -205,12 +205,13 @@ input_wavelength = float(input("Enter the wavelength: "))
 power_percentage = float(input(f"Enter the power percentage at {input_wavelength} nm: "))
 closest_wavelength_index = np.argmin(np.abs(df_normalized['Wavelength'] - input_wavelength))
 closest_wavelength = df_normalized.loc[closest_wavelength_index, 'Wavelength']
-scaled_factor = df_normalized.loc[closest_wavelength_index, 'Normalized_Intensity'] / power_percentage
+scaled_factor = 100 * power_percentage / df_normalized.loc[closest_wavelength_index, 'Normalized_Intensity'] 
 df_normalized['Percentage_Transmission'] = df_normalized['Normalized_Intensity'] * scaled_factor
-plot_spectrum(df_normalized['Wavelength'], df_normalized['Percentage_Transmission'],
-              x_label='Wavelength (nm)', y_label='Percentage Transmission (%)',
-              title='Percentage Transmission vs Wavelength',
-              legend_label='Percentage Transmission')
+df_filtered = df_normalized[(df_normalized['Wavelength'] > 455) & (df_normalized['Wavelength'] < 984)]
+plot_spectrum(df_filtered['Wavelength'], df_filtered['Normalized_Intensity'],
+              x_label='Wavelength (nm)', y_label='Normalized Intensity',
+              title='Normalized Intensity vs Wavelength (Wavelength > 450nm)',
+              legend_label='Normalized Intensity')
 csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission.csv")
 df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
