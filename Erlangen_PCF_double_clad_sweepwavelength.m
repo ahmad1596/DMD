@@ -5,7 +5,7 @@ clc; clear variables; close all;
 lambda = 650e-9;
 k0 = 2*pi/lambda;
 beta = k0; % Propagation constant will be close to that of free space.
-Nx = 101;
+Nx = 301;
 NoModes = 2;
 
 um = 1e-6;
@@ -94,31 +94,34 @@ for wl_idx = 1:length(wavelength_range)
     lambda = wavelength_range(wl_idx);
     k0 = 2 * pi / lambda;
 
+    % Print current wavelength
+    fprintf('Current Wavelength: %.2f nm\n', lambda * 1e9);
+
     % Call FD solver
     RetVal = ModeSolverFD(dx, n, lambda, beta, NoModes);
-    
-    % Optical Power Transmission Calculation
-    imag_neff_mode1 = (-1/100) * imag(RetVal.beta(1) / k0);
-    imag_neff_mode2 = (-1/100) * imag(RetVal.beta(2) / k0);
-    optical_power_transmission_dB_cm_mode1(wl_idx) = -20 * log10(exp(-2 * pi * imag_neff_mode1 / lambda)) / 100;
-    optical_power_transmission_dB_cm_mode2(wl_idx) = -20 * log10(exp(-2 * pi * imag_neff_mode2 / lambda)) / 100;
-    
-    % Plot mode profiles for the current wavelength
-    figure;
-    for i = 1:NoModes
-        neff = RetVal.beta(i) / k0;
+
+    for mode_idx = 1:NoModes
+        % Print current mode
+        fprintf('Current Mode: %d\n', mode_idx);
+
+        % Optical Power Transmission Calculation
+        imag_neff = (-1/100) * imag(RetVal.beta(mode_idx) / k0);
+        optical_power_transmission_dB_cm(mode_idx, wl_idx) = -20 * log10(exp(-2 * pi * imag_neff / lambda)) / 100;
+
+        % Plot mode profile for the current mode and wavelength
+        figure;
+        neff = RetVal.beta(mode_idx) / k0;
         neff_real = real(neff);
         neff_imag = (-1/100) * imag(neff);
-        
-        subplot(1, NoModes, i);
-        imagesc(x*1e6, x*1e6, RetVal.Eabs{i});
+        imagesc(x*1e6, x*1e6, RetVal.Eabs{mode_idx});
         title(['Mode Profile: n_{eff} = ' num2str(neff_real, '%.7g') ' + ' num2str(neff_imag, '%.7g') 'i']);
         axis square;
         xlabel('\mum');
         ylabel('\mum');
+        sgtitle(['Wavelength: ' num2str(lambda * 1e9) ' nm, Mode: ' num2str(mode_idx)]);
     end
-    sgtitle(['Wavelength: ' num2str(lambda * 1e9) ' nm']);
 end
+
 
 % Find the maximum transmission values for both modes
 max_transmission_mode1 = max(optical_power_transmission_dB_cm_mode1);
