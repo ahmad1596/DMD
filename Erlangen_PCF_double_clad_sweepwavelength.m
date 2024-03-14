@@ -15,7 +15,8 @@ r_core = 25.5 * um;
 r_clad = 34.0 * um;
 r_total = r_core +   r_clad;
 x = linspace(-26 * um, 26 * um, Nx);
-[x_mesh, y_mesh] = meshgrid(x, x.');
+y = linspace(-26 * um, 26 * um, Nx);
+[x_mesh, y_mesh] = meshgrid(x, y);
 r_mesh = sqrt(x_mesh.^2 + y_mesh.^2);
 n = ones(Nx, Nx) * n_silica;
 n(r_mesh < r_total) = n_silica;
@@ -70,9 +71,6 @@ lambda_in_nm = lambda * 1e9;
 dx_in_nm = dx * 1e9;
 lambda_dx_ratio = lambda / dx;
 
-fprintf('lambda: %.2f nm\n', lambda_in_nm);
-fprintf('dx: %.2f nm\n', dx_in_nm);
-fprintf('lambda/dx: %.2f\n', lambda_dx_ratio);
 
 %% Show refractive index profile
 
@@ -87,53 +85,49 @@ hold on;
 
 wavelength_range = 500e-9:100e-9:700e-9;
 
-optical_power_loss_dB_cm_mode1 = zeros(size(wavelength_range));
-optical_power_loss_dB_cm_mode2 = zeros(size(wavelength_range));
+optical_power_transmission_dB_cm_mode1 = zeros(size(wavelength_range));
+optical_power_transmission_dB_cm_mode2 = zeros(size(wavelength_range));
 
 for wl_idx = 1:length(wavelength_range)
     lambda = wavelength_range(wl_idx);
     k0 = 2 * pi / lambda;
+    lambda_dx_ratio = lambda / dx;
+    
+    fprintf('Mode Iteration: %d\n', wl_idx);
+    fprintf('Current Wavelength: %.2f nm\n', lambda * 1e9);
+    fprintf('Current Wavelength/dx: %.2f\n', lambda_dx_ratio);
 
     % Call FD solver
     RetVal = ModeSolverFD(dx, n, lambda, beta, NoModes);
     imag_neff_mode1 = (-1/100) * imag(RetVal.beta(1) / k0);
     imag_neff_mode2 = (-1/100) * imag(RetVal.beta(2) / k0);
-    optical_power_loss_dB_cm_mode1(wl_idx) = -20 * log10(exp(-2 * pi * imag_neff_mode1 / lambda)) / 100;
-    optical_power_loss_dB_cm_mode2(wl_idx) = -20 * log10(exp(-2 * pi * imag_neff_mode2 / lambda)) / 100;
+    optical_power_transmission_dB_cm_mode1(wl_idx) = -20 * log10(exp(-2 * pi * imag_neff_mode1 / lambda)) / 100;
+    optical_power_transmission_dB_cm_mode2(wl_idx) = -20 * log10(exp(-2 * pi * imag_neff_mode2 / lambda)) / 100;
+
+    figure;
+    subplot(1,2,1);
+    imagesc(x*1e6, y*1e6, RetVal.Eabs{1});
+    title({'Mode 1'; ['\lambda = ' num2str(lambda * 1e9) ' nm']; ['n_{eff} = ' num2str(real(RetVal.beta(1)) / k0, '%.7g') ' + ' num2str(imag(RetVal.beta(1)) / k0, '%.7g') 'i']});
+    axis square;
+    xlabel('\mum');
+    ylabel('\mum');
+
+    subplot(1,2,2);
+    imagesc(x*1e6, y*1e6, RetVal.Eabs{2});
+    title({'Mode 2'; ['\lambda = ' num2str(lambda * 1e9) ' nm']; ['n_{eff} = ' num2str(real(RetVal.beta(2)) / k0, '%.7g') ' + ' num2str(imag(RetVal.beta(2)) / k0, '%.7g') 'i']});
+    axis square;
+    xlabel('\mum');
+    ylabel('\mum');
+
 end
 
 %% Plot optical power loss vs. wavelength for both modes
 figure;
-plot(wavelength_range * 1e9, optical_power_loss_dB_cm_mode1, '-o', 'DisplayName', 'Mode 1');
+plot(wavelength_range * 1e9, optical_power_transmission_dB_cm_mode1, '-o', 'DisplayName', 'Mode 1');
 hold on;
-plot(wavelength_range * 1e9, optical_power_loss_dB_cm_mode2, '-o', 'DisplayName', 'Mode 2');
+plot(wavelength_range * 1e9, optical_power_transmission_dB_cm_mode2, '-o', 'DisplayName', 'Mode 2');
 xlabel('Wavelength (nm)');
-ylabel('Optical Power Loss (dB/cm)');
-title('Optical Power Loss vs. Wavelength for Different Modes');
+ylabel('Optical Power Transmission (dB/cm)');
+title('Optical Power Transmission vs. Wavelength for Different Modes');
 legend;
 grid on;
-
-%% Plot mode profiles for all wavelengths in the sweep range
-for wl_idx = 1:length(wavelength_range)
-    lambda = wavelength_range(wl_idx);
-    k0 = 2 * pi / lambda;
-
-    % Call FD solver
-    RetVal = ModeSolverFD(dx, n, lambda, beta, NoModes);
-    
-    % Plot mode profiles for the current wavelength
-    figure;
-    for i = 1:NoModes
-        neff = RetVal.beta(i) / k0;
-        neff_real = real(neff);
-        neff_imag = (-1/100) * imag(neff);
-        
-        subplot(1, NoModes, i);
-        imagesc(x*1e6, x*1e6, RetVal.Eabs{i});
-        title(['Mode Profile: n_{eff} = ' num2str(neff_real, '%.7g') ' + ' num2str(neff_imag, '%.7g') 'i']);
-        axis square;
-        xlabel('\mum');
-        ylabel('\mum');
-    end
-    suptitle(['Wavelength: ' num2str(lambda * 1e9) ' nm']);
-end
