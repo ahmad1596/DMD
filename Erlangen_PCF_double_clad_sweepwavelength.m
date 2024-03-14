@@ -5,8 +5,8 @@ clc; clear variables; close all;
 lambda = 650e-9;
 k0 = 2*pi/lambda;
 beta = k0; % Propagation constant will be close to that of free space.
-Nx = 101;
-NoModes = 2;
+Nx = 200;
+NoModes = 10; % Number of modes
 
 um = 1e-6;
 n_silica = 1.45;
@@ -81,12 +81,9 @@ xlabel('\mum');
 ylabel('\mum');
 hold on;
 
-%% Sweep parameter of wavelength and plot graph of optical power loss (dB/cm)
+wavelength_range = 500e-9:10e-9:700e-9;
 
-wavelength_range = 500e-9:100e-9:700e-9;
-
-optical_power_transmission_dB_cm_mode1 = zeros(size(wavelength_range));
-optical_power_transmission_dB_cm_mode2 = zeros(size(wavelength_range));
+optical_power_transmission_dB_cm_modes = zeros(length(wavelength_range), NoModes);
 
 for wl_idx = 1:length(wavelength_range)
     lambda = wavelength_range(wl_idx);
@@ -99,33 +96,31 @@ for wl_idx = 1:length(wavelength_range)
 
     % Call FD solver
     RetVal = ModeSolverFD(dx, n, lambda, beta, NoModes);
-    imag_neff_mode1 = (-1/100) * imag(RetVal.beta(1) / k0);
-    imag_neff_mode2 = (-1/100) * imag(RetVal.beta(2) / k0);
-    optical_power_transmission_dB_cm_mode1(wl_idx) = -20 * log10(exp(-2 * pi * imag_neff_mode1 / lambda)) / 100;
-    optical_power_transmission_dB_cm_mode2(wl_idx) = -20 * log10(exp(-2 * pi * imag_neff_mode2 / lambda)) / 100;
+    imag_neff = (-1/100) * imag(RetVal.beta / k0);
+    
+    for mode_idx = 1:NoModes
+        optical_power_transmission_dB_cm_modes(wl_idx, mode_idx) = -20 * log10(exp(-2 * pi * imag_neff(mode_idx) / lambda)) / 100;
+    end
 
     figure;
-    subplot(1,2,1);
-    imagesc(x*1e6, y*1e6, RetVal.Eabs{1});
-    title({'Mode 1'; ['\lambda = ' num2str(lambda * 1e9) ' nm']; ['n_{eff} = ' num2str(real(RetVal.beta(1)) / k0, '%.7g') ' + ' num2str(imag(RetVal.beta(1)) / k0, '%.7g') 'i']});
-    axis square;
-    xlabel('\mum');
-    ylabel('\mum');
-
-    subplot(1,2,2);
-    imagesc(x*1e6, y*1e6, RetVal.Eabs{2});
-    title({'Mode 2'; ['\lambda = ' num2str(lambda * 1e9) ' nm']; ['n_{eff} = ' num2str(real(RetVal.beta(2)) / k0, '%.7g') ' + ' num2str(imag(RetVal.beta(2)) / k0, '%.7g') 'i']});
-    axis square;
-    xlabel('\mum');
-    ylabel('\mum');
-
+    for mode_idx = 1:NoModes
+        subplot(2, 5, mode_idx);
+        imagesc(x*1e6, y*1e6, RetVal.Eabs{mode_idx});
+        title(['Mode ' num2str(mode_idx)]);
+        xlabel('\mum');
+        ylabel('\mum');
+        axis square;
+    end
+    sgtitle(['\lambda = ' num2str(lambda * 1e9) ' nm']);
+    
+    drawnow;
 end
 
-%% Plot optical power loss vs. wavelength for both modes
 figure;
-plot(wavelength_range * 1e9, optical_power_transmission_dB_cm_mode1, '-o', 'DisplayName', 'Mode 1');
-hold on;
-plot(wavelength_range * 1e9, optical_power_transmission_dB_cm_mode2, '-o', 'DisplayName', 'Mode 2');
+for mode_idx = 1:NoModes
+    plot(wavelength_range * 1e9, optical_power_transmission_dB_cm_modes(:, mode_idx), '-o', 'DisplayName', ['Mode ' num2str(mode_idx)]);
+    hold on;
+end
 xlabel('Wavelength (nm)');
 ylabel('Optical Power Transmission (dB/cm)');
 title('Optical Power Transmission vs. Wavelength for Different Modes');
