@@ -75,7 +75,7 @@ lambda_dx_ratio = lambda / dx;
 %% Show refractive index profile
 
 figure;
-imagesc(x*1e6, x*1e6, n);
+imagesc(x*1e6, y*1e6, n);
 axis square;
 xlabel('\mum');
 ylabel('\mum');
