@@ -49,8 +49,8 @@ def main():
     cladding_radius = 2e-6
     n_core = 1.45
     n_clad = 1.0
-    Nx = 1000
-    Ny = 1000
+    Nx = 100
+    Ny = 100
     dx = 1e-8
     dy = 1e-8
     eps0 = 8.854e-12
