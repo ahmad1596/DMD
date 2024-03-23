@@ -2441,13 +2441,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_10
 
 ##############################################################################################################################################################
 
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
-
-##############################################################################################################################################################
-
-
 df_combined = pd.DataFrame({
     'Wavelength': df_normalized['Wavelength'],
     'Percentage_Transmission_1': df_normalized['Percentage_Transmission_1'],
