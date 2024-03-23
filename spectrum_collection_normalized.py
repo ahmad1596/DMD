@@ -5,10 +5,8 @@ import os
 import h5py
 import matplotlib.pyplot as plt
 import pandas as pd
-import sys
 
 ##############################################################################################################################################################
-
 
 def plot_spectrum(x_values, intensities, x_label, y_label, title, legend_label=None):
     fig, ax = plt.subplots(figsize=(8, 6), dpi=600)
@@ -219,12 +217,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_1'
 
 ##############################################################################################################################################################
 
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
-
-##############################################################################################################################################################
-
 date = "2024-03-20T" 
 DIRPATH = os.path.normpath(os.path.abspath('C:/Users/hera/Documents/optofluidics-master/optofluidics-master/Python/ahmad_thesis'))
 FILENAMES = os.listdir(DIRPATH)
@@ -417,13 +409,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_2'
               legend_label='Normalized Intensity')
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission_2.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
-
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
 
 ##############################################################################################################################################################
 
@@ -620,13 +605,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_3'
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
-
 ##############################################################################################################################################################
 
 date = "2024-03-20T" 
@@ -822,13 +800,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_4'
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission_2.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
-    
 ##############################################################################################################################################################
 
 date = "2024-03-20T" 
@@ -1023,13 +994,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_5'
               legend_label='Normalized Intensity')
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
-
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
 
 ##############################################################################################################################################################
 
@@ -1226,13 +1190,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_6'
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission_2.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
-
 ##############################################################################################################################################################
 
 date = "2024-03-20T" 
@@ -1427,13 +1384,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_7'
               legend_label='Normalized Intensity')
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
-
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
 
 ##############################################################################################################################################################
 
@@ -1630,13 +1580,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_8'
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission_2.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
-
 ##############################################################################################################################################################
 
 date = "2024-03-20T" 
@@ -1832,13 +1775,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_7'
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
-
 ##############################################################################################################################################################
 
 date = "2024-03-20T" 
@@ -2033,13 +1969,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_8'
               legend_label='Normalized Intensity')
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission_2.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
-
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
 
 ##############################################################################################################################################################
 
@@ -2236,13 +2165,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_9'
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
-
-##############################################################################################################################################################
-
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
-if user_input.lower() == 'exit':
-    sys.exit()
-
 ##############################################################################################################################################################
 
 date = "2024-03-20T" 
@@ -2438,7 +2360,9 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_10
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission_2.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
+
 ##############################################################################################################################################################
+
 
 df_combined = pd.DataFrame({
     'Wavelength': df_normalized['Wavelength'],
