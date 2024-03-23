@@ -2438,7 +2438,6 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_10
 #csv_file_path_percentage_transmission = os.path.join(folder_path, "Percentage_Transmission_2.csv")
 #df_normalized[['Wavelength', 'Percentage_Transmission']].to_csv(csv_file_path_percentage_transmission, index=None)
 
-
 ##############################################################################################################################################################
 
 df_combined = pd.DataFrame({
