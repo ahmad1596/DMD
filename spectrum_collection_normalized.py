@@ -5,9 +5,7 @@ import os
 import h5py
 import matplotlib.pyplot as plt
 import pandas as pd
-
 import sys
-user_input = input("Press Enter to continue or type 'exit' to quit: ")
 
 ##############################################################################################################################################################
 
@@ -221,6 +219,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_1'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -422,6 +421,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_2'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -623,6 +623,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_3'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -824,6 +825,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_4'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
     
@@ -1025,6 +1027,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_5'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -1226,6 +1229,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_6'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -1427,6 +1431,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_7'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -1628,6 +1633,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_8'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -1829,6 +1835,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_7'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -2030,6 +2037,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_8'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -2231,6 +2239,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_9'
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
@@ -2432,6 +2441,7 @@ plot_spectrum(df_filtered['Wavelength'], df_filtered['Percentage_Transmission_10
 
 ##############################################################################################################################################################
 
+user_input = input("Press Enter to continue or type 'exit' to quit: ")
 if user_input.lower() == 'exit':
     sys.exit()
 
