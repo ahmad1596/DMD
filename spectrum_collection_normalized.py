@@ -838,7 +838,7 @@ plot_spectrum(df_filtered_5['Wavelength'], df_filtered_5['Percentage_Transmissio
               legend_label='Normalized Intensity')
 
 ##############################################################################################################################################################
-# COMBINED NORMALISED SPECTRUM WITH FIBER 
+# COMBINED SPECTRUM WITH FIBER 
 ##############################################################################################################################################################
 
 plot_spectrum_combined(df_filtered_1['Wavelength'], df_filtered_1['Percentage_Transmission_1'], 
