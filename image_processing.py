@@ -61,17 +61,17 @@ def show_images(fiber_image, background_image, subtracted_image_darkened):
     plt.show()
 
 def main():
-    fiber_image_path = r'C:\Users\DELL\Documents\2024\negativecontrol_lamp450_03042024\550FEL_filter_1000ms_All.tiff'
-    background_image_path = r'C:\Users\DELL\Documents\2024\negativecontrol_lamp450_03042024\background_550FEL_filter_1000ms.tiff'
+    fiber_image_path = r'C:\Users\DELL\Documents\2024\100nM_BSA-TR_lamp550_04042024\600FEL_filter_1000ms_Core.tiff'
+    background_image_path = r'C:\Users\DELL\Documents\2024\100nM_BSA-TR_lamp550_04042024\background_600FEL_filter_1000ms.tiff'
 
     fiber_image, background_image = load_images(fiber_image_path, background_image_path)
 
     subtracted_image = preprocess_images(fiber_image, background_image)
 
-    brightness_factor = 0.3
+    brightness_factor = 0.7
     subtracted_image_darkened = adjust_brightness(subtracted_image, brightness_factor)
 
-    center = (530, 735)
+    center = (500, 735)
     diameter = 690
     subtracted_image_darkened = create_circle_mask(subtracted_image_darkened, center, diameter)
 
@@ -80,10 +80,10 @@ def main():
     bar_thickness = 5
     conversion_factor = 120 / 690
     bar_length_um = 30
-    text = '30 um'
+    text = '30 nm'
     subtracted_image_darkened = draw_scale_bar(subtracted_image_darkened, bar_line_position_x, bar_line_position_y, bar_thickness, conversion_factor, bar_length_um, text)
 
-    output_path = r'C:\Users\DELL\Documents\2024\negativecontrol_lamp450_03042024\output_ALL_with_bar.tiff'
+    output_path = r'C:\Users\DELL\Documents\2024\100nM_BSA-TR_lamp550_04042024\output_Core.tiff'
     save_image(subtracted_image_darkened, output_path)
 
     show_images(fiber_image, background_image, subtracted_image_darkened)
