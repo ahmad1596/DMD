@@ -43,35 +43,26 @@ def save_image(image, output_path):
 
 def show_images(original_image, processed_image):
     fig, ax = plt.subplots(1, 2, figsize=(10, 5), dpi=600)
-
-    # Display original image with color bar
-    im1 = ax[0].imshow(original_image, cmap='jet')
+    im1 = ax[0].imshow(original_image, cmap='viridis')
     ax[0].set_title('Original Fiber Image')
     ax[0].axis('off')
     cbar1 = fig.colorbar(im1, ax=ax[0], orientation='vertical')
     cbar1.set_label('Intensity')
-
-    # Display processed image with color bar
-    im2 = ax[1].imshow(processed_image, cmap='jet')
+    im2 = ax[1].imshow(processed_image, cmap='viridis')
     ax[1].set_title('Background Subtracted Fiber Image')
     ax[1].axis('off')
     cbar2 = fig.colorbar(im2, ax=ax[1], orientation='vertical')
     cbar2.set_label('Intensity')
-
     plt.tight_layout()
     plt.show()
 
 def main():
     fiber_image_path = r'C:\Users\DELL\Documents\2024\100nM_BSA-TR_lamp550_04042024\600FEL_filter_1000ms_All.tiff'
-
     fiber_image = load_image(fiber_image_path)
-
     processed_image = preprocess_image(fiber_image)
-
     center = (500, 740)
     diameter = 690
     processed_image_masked = create_circle_mask(processed_image, center, diameter)
-
     bar_line_position_x = 1100
     bar_line_position_y = 1100
     bar_thickness = 5
@@ -79,14 +70,10 @@ def main():
     bar_length_um = 30
     text = '30 nm'
     processed_image_with_bar = draw_scale_bar(processed_image_masked, bar_line_position_x, bar_line_position_y, bar_thickness, conversion_factor, bar_length_um, text)
-
     brightness_factor = 0.75
     processed_image_brightened = adjust_brightness(processed_image_with_bar, brightness_factor)
-
     output_path = r'C:\Users\DELL\Documents\2024\100nM_BSA-TR_lamp550_04042024\output_All.tiff'
     save_image(processed_image_brightened, output_path)
-
     show_images(fiber_image, processed_image_brightened)
-
 if __name__ == "__main__":
     main()
