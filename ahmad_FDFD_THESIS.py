@@ -8,6 +8,7 @@ nx = 100
 ny = 100
 wavelength = 0.55
 k0 = 2 * np.pi / wavelength
+beta_guess = k0
 n_modes = 2
 
 pml_thickness = 0.5
@@ -65,7 +66,7 @@ def plot_eigenmodes(eigenmodes, nx, ny, nx_pml, ny_pml):
         plot_pml_regions(nx_pml, ny_pml)
     plt.show()
 
-def fdfd(waveguide, dx, dy, wavelength, beta):
+def fdfd(waveguide, dx, dy, wavelength):
     k0 = 2 * np.pi / wavelength
     eps_r = waveguide**2
     nx, ny = waveguide.shape
@@ -117,7 +118,7 @@ def fdfd(waveguide, dx, dy, wavelength, beta):
                 data[9 * idx] += pml_term
                 data[9 * idx + 7] = -pml_term
     laplacian_sparse = coo_matrix((data, (rows, cols)), shape=(n, n)).tocsr()
-    eigvals, eigvecs = sla.eigs(-laplacian_sparse, k=n_modes, sigma=beta**2, which='LM')
+    eigvals, eigvecs = sla.eigs(-laplacian_sparse, k=n_modes, sigma=beta_guess**2, which='LM')
     beta = np.sqrt(np.diag(eigvals))
     return eigvals, eigvecs, beta
 
@@ -158,7 +159,7 @@ def main():
     nx_pml, ny_pml = print_coordinates_and_pml(dx, dy, wavelength, pml_thickness)
     plot_refractive_index_profile(waveguide, x, y)
     plot_pml_regions(nx_pml, ny_pml)
-    eigenvalues, eigenmodes, beta = fdfd(waveguide, dx, dy, wavelength, k0)
+    eigenvalues, eigenmodes, beta = fdfd(waveguide, dx, dy, wavelength)
     eigenvalues, eigenmodes = sort_eigenvalues_and_eigenvectors(eigenvalues, eigenmodes)
     print_propagation_constants(eigenvalues, beta)
     plot_eigenmodes(eigenmodes, nx, ny, nx_pml, ny_pml)
