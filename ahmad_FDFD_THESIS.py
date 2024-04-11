@@ -146,13 +146,25 @@ def sort_eigenvalues_and_eigenvectors(eigenvalues, eigenmodes):
 
 def print_propagation_constants(eigenvalues, beta):
     beta = beta * 1e6
-    print("Propagation constants (m\u207B\u00B9) for each mode:")
+    print("Propagation constants (m⁻¹) for each mode:")
     for mode_num, mode in enumerate(beta, start=1):
         for val in mode:
             if val != 0:
                 val_str = str(val).strip('()')
                 print(f"Mode {mode_num}: {val_str}")
 
+def print_loss_db_per_cm(beta, wavelength):
+    print("Loss (dB/cm) for each mode:")
+    for mode_num, mode in enumerate(beta, start=1):
+        neff = mode / k0
+        absorption_coefficient = 4 * np.pi * neff.imag / wavelength
+        loss = np.abs(absorption_coefficient)
+        loss = np.where(loss < 1e-10, 1e-10, loss)
+        loss_db_cm = -20 * np.log10(loss) / 100
+        valid_loss_db_cm = [f"{val:.12f}" for val in loss_db_cm if val != 2]
+        loss_str = ", ".join(valid_loss_db_cm)
+        print(f"Mode {mode_num}: {loss_str}")
+        
 def main():
     start_time = time.time()
     waveguide, dx, dy, x, y = define_waveguide(nx, ny)
@@ -162,6 +174,7 @@ def main():
     eigenvalues, eigenmodes, beta = fdfd(waveguide, dx, dy, wavelength)
     eigenvalues, eigenmodes = sort_eigenvalues_and_eigenvectors(eigenvalues, eigenmodes)
     print_propagation_constants(eigenvalues, beta)
+    print_loss_db_per_cm(beta, wavelength)
     plot_eigenmodes(eigenmodes, nx, ny, nx_pml, ny_pml)
     end_time = time.time()
     elapsed_time = end_time - start_time
