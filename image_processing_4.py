@@ -42,6 +42,7 @@ def save_image(image, output_path):
     image_pil.save(output_path)
 
 def show_images(processed_image):
+    # Original Image
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     im1 = ax.imshow(processed_image, cmap='viridis')
     ax.set_title('Original Image')
@@ -50,6 +51,7 @@ def show_images(processed_image):
     cbar1.set_label('Intensity')
     plt.tight_layout()
     plt.show()
+    # Zoom 1
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (590, 570)
     zoom_radius = 200
@@ -66,28 +68,244 @@ def show_images(processed_image):
     bar_line_position_x = 370
     bar_line_position_y = 360
     bar_thickness = 5
-    conversion_factor = 120 / 690  # Adjust this based on your conversion factor
-    bar_length_um = 10  # Length of the scale bar in µm
+    conversion_factor = 120 / 690  
+    bar_length_um = 10  
     bar_length_pixels = int(bar_length_um / conversion_factor)
     ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 20, '10 µm', color='white', ha='center')
-
     plt.tight_layout()
     plt.show()
+    # Zoom 2
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (675, 490)
+    zoom_radius = 40
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 72
+    bar_line_position_y = 72
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 1 
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+    # Zoom 3
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (710, 570)
+    zoom_radius = 40
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 72
+    bar_line_position_y = 72
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 1 
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+    # Zoom 4
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (710, 570)
+    zoom_radius = 40
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 72
+    bar_line_position_y = 72
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 1 
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+    # Zoom 5
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (677, 650)
+    zoom_radius = 40
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 72
+    bar_line_position_y = 72
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 1 
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+    # Zoom 6
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (593, 680)
+    zoom_radius = 40
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 72
+    bar_line_position_y = 72
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 1 
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+    # Zoom 6
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (520, 650)
+    zoom_radius = 40
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 72
+    bar_line_position_y = 72
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 1 
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+    # Zoom 7
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (485, 572)
+    zoom_radius = 40
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 72
+    bar_line_position_y = 72
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 1 
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+    # Zoom 8
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (515, 490)
+    zoom_radius = 40
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 72
+    bar_line_position_y = 72
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 1 
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+    # Zoom 8
+    fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
+    zoom_center = (598, 565)
+    zoom_radius = 100
+    zoom_xmin = max(0, zoom_center[0] - zoom_radius)
+    zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
+    zoom_ymin = max(0, zoom_center[1] - zoom_radius)
+    zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
+    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image, cmap='viridis')
+    ax.set_title('Zoomed-in Image')
+    ax.axis('off')
+    cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
+    cbar2.set_label('Intensity')
+    bar_line_position_x = 190
+    bar_line_position_y = 180
+    bar_thickness = 5
+    conversion_factor = 120 / 690  
+    bar_length_um = 4.5
+    bar_length_pixels = int(bar_length_um / conversion_factor)
+    ax.plot([bar_line_position_x - bar_length_pixels, bar_line_position_x], [bar_line_position_y, bar_line_position_y], color='white', linewidth=bar_thickness)
+    ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 10, '5 µm', color='white', ha='center')
+    plt.tight_layout()
+    plt.show()
+
 
 def main():
     fiber_image_path = r'C:\Users\DELL\Documents\2024\RhB_1uM_flow_from_water_fiber_22042024\all_100ms_1_min.tiff'
     fiber_image = load_image(fiber_image_path)
     processed_image = preprocess_image(fiber_image)
     center = (570, 590)
-    diameter = 700
+    diameter = 700 # 700 for All Fiber, 290 for Only Core
     processed_image_masked = create_circle_mask(processed_image, center, diameter)
     bar_line_position_x = 1100
     bar_line_position_y = 1100
     bar_thickness = 10
     conversion_factor = 120 / 690
     bar_length_um = 30
-    text = '30 um'  # Use Unicode string
+    text = '30 um'
     processed_image_with_bar = draw_scale_bar(processed_image_masked, bar_line_position_x, bar_line_position_y, bar_thickness, conversion_factor, bar_length_um, text)
     brightness_factor = 0.9
     processed_image_brightened = adjust_brightness(processed_image_with_bar, brightness_factor)
