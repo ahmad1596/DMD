@@ -125,7 +125,7 @@ def show_images(processed_image):
     plt.show()
     # Zoom 4, Fiber Capillary 3
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
-    zoom_center = (710, 570)
+    zoom_center = (677, 650)
     zoom_radius = 40
     zoom_xmin = max(0, zoom_center[0] - zoom_radius)
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
@@ -149,7 +149,7 @@ def show_images(processed_image):
     plt.show()
     # Zoom 5, Fiber Capillary 4
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
-    zoom_center = (677, 650)
+    zoom_center = (593, 680)
     zoom_radius = 40
     zoom_xmin = max(0, zoom_center[0] - zoom_radius)
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
@@ -173,7 +173,7 @@ def show_images(processed_image):
     plt.show()
     # Zoom 6, Fiber Capillary 5
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
-    zoom_center = (593, 680)
+    zoom_center = (520, 650)
     zoom_radius = 40
     zoom_xmin = max(0, zoom_center[0] - zoom_radius)
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
@@ -195,9 +195,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
-    # Zoom 6, Fiber Capillary 6
+    # Zoom 7, Fiber Capillary 6
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
-    zoom_center = (520, 650)
+    zoom_center = (485, 572)
     zoom_radius = 40
     zoom_xmin = max(0, zoom_center[0] - zoom_radius)
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
@@ -219,9 +219,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
-    # Zoom 7, Fiber Capillary 7
+    # Zoom 8, Fiber Capillary 7
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
-    zoom_center = (485, 572)
+    zoom_center = (515, 490)
     zoom_radius = 40
     zoom_xmin = max(0, zoom_center[0] - zoom_radius)
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
@@ -243,9 +243,10 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
-    # Zoom 8, Fiber Capillary 8
+
+    # Zoom 9, Fiber Capillary 8
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
-    zoom_center = (515, 490)
+    zoom_center = (590, 460)
     zoom_radius = 40
     zoom_xmin = max(0, zoom_center[0] - zoom_radius)
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
@@ -267,7 +268,7 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
-    # Zoom 8, Fiber Core
+    # Zoom 10, Fiber Core
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (598, 565)
     zoom_radius = 100
@@ -291,6 +292,7 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 10, '5 µm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+
 
 
 def main():
