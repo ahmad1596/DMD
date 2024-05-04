@@ -45,7 +45,7 @@ def show_images(processed_image):
     # Original Image
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     im1 = ax.imshow(processed_image, cmap='viridis')
-    ax.set_title('Original Image,  50 mins BSA-TR flow')
+    ax.set_title('Original Image, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical')
     cbar1.set_label('Intensity')
@@ -61,7 +61,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Core + Ring')
+    ax.set_title('Fiber Core + Ring, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -85,7 +85,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Capillary 1')
+    ax.set_title('Fiber Capillary 1, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -109,7 +109,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Capillary 2')
+    ax.set_title('Fiber Capillary 2, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -133,7 +133,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Capillary 3')
+    ax.set_title('Fiber Capillary 3, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -157,7 +157,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Capillary 4')
+    ax.set_title('Fiber Capillary 4, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -181,7 +181,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Capillary 5')
+    ax.set_title('Fiber Capillary 5, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -205,7 +205,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Capillary 6')
+    ax.set_title('Fiber Capillary 6, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -229,7 +229,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Capillary 7')
+    ax.set_title('Fiber Capillary 7, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -253,7 +253,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Capillary 8')
+    ax.set_title('Fiber Capillary 8, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -277,7 +277,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image, Fiber Core')
+    ax.set_title('Fiber Core, 50 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
