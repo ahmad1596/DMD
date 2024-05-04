@@ -49,7 +49,7 @@ def save_image(image, output_path):
     image_pil.save(output_path)
 
 def show_images(processed_image):
-    # Zoom 9
+    # Zoom 9, Ring
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (598, 565)
     zoom_radius = 200
@@ -59,7 +59,7 @@ def show_images(processed_image):
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
     zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
     im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Zoomed-in Image')
+    ax.set_title('Zoomed-in Image, Fiber Ring')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
