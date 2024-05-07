@@ -45,12 +45,14 @@ def show_images(processed_image):
     # Original Image
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     im1 = ax.imshow(processed_image, cmap='viridis')
-    ax.set_title('Original Image, 50 mins BSA-TR flow')
+    ax.set_title('Original Image, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar1 = fig.colorbar(im1, ax=ax, orientation='vertical')
     cbar1.set_label('Intensity')
     plt.tight_layout()
     plt.show()
+    average_intensity_original = np.mean(processed_image)
+    print("Average Intensity (Original Image):", average_intensity_original)
     # Zoom 1, Core + Ring
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (590, 570)
@@ -59,9 +61,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Core + Ring, 50 mins BSA-TR flow')
+    zoomed_image_1 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_1, cmap='viridis')
+    ax.set_title('Fiber Core + Ring, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -75,6 +77,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 20, '10 µm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_core_ring = np.mean(zoomed_image_1)
+    print("Average Intensity (Core + Ring):", average_intensity_core_ring)
+
     # Zoom 2, Fiber Capillary 1
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (675, 490)
@@ -83,9 +88,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Capillary 1, 50 mins BSA-TR flow')
+    zoomed_image_2 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_2, cmap='viridis')
+    ax.set_title('Fiber Capillary 1, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -99,6 +104,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_capillary_1 = np.mean(zoomed_image_2)
+    print("Average Intensity (Capillary 1):", average_intensity_capillary_1)
+    
     # Zoom 3, Fiber Capillary 2
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (710, 570)
@@ -107,9 +115,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Capillary 2, 50 mins BSA-TR flow')
+    zoomed_image_3 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_3, cmap='viridis')
+    ax.set_title('Fiber Capillary 2, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -123,6 +131,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_capillary_2 = np.mean(zoomed_image_3)
+    print("Average Intensity (Capillary 2):", average_intensity_capillary_2)
+    
     # Zoom 4, Fiber Capillary 3
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (677, 650)
@@ -131,9 +142,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Capillary 3, 50 mins BSA-TR flow')
+    zoomed_image_4 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_4, cmap='viridis')
+    ax.set_title('Fiber Capillary 3, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -147,6 +158,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_capillary_3 = np.mean(zoomed_image_4)
+    print("Average Intensity (Capillary 3):", average_intensity_capillary_3)
+    
     # Zoom 5, Fiber Capillary 4
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (593, 680)
@@ -155,9 +169,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Capillary 4, 50 mins BSA-TR flow')
+    zoomed_image_5 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_5, cmap='viridis')
+    ax.set_title('Fiber Capillary 4, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -171,6 +185,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_capillary_4 = np.mean(zoomed_image_5)
+    print("Average Intensity (Capillary 4):", average_intensity_capillary_4)
+    
     # Zoom 6, Fiber Capillary 5
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (520, 650)
@@ -179,9 +196,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Capillary 5, 50 mins BSA-TR flow')
+    zoomed_image_6 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_6, cmap='viridis')
+    ax.set_title('Fiber Capillary 5, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -195,6 +212,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_capillary_5 = np.mean(zoomed_image_6)
+    print("Average Intensity (Capillary 5):", average_intensity_capillary_5)
+    
     # Zoom 7, Fiber Capillary 6
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (485, 572)
@@ -203,9 +223,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Capillary 6, 50 mins BSA-TR flow')
+    zoomed_image_7 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_7, cmap='viridis')
+    ax.set_title('Fiber Capillary 6, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -219,6 +239,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_capillary_6 = np.mean(zoomed_image_7)
+    print("Average Intensity (Capillary 6):", average_intensity_capillary_6)
+    
     # Zoom 8, Fiber Capillary 7
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (515, 490)
@@ -227,9 +250,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Capillary 7, 50 mins BSA-TR flow')
+    zoomed_image_8 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_8, cmap='viridis')
+    ax.set_title('Fiber Capillary 7, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -243,7 +266,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
-
+    average_intensity_capillary_7 = np.mean(zoomed_image_8)
+    print("Average Intensity (Capillary 7):", average_intensity_capillary_7)
+    
     # Zoom 9, Fiber Capillary 8
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (590, 460)
@@ -252,9 +277,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Capillary 8, 50 mins BSA-TR flow')
+    zoomed_image_9 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_9, cmap='viridis')
+    ax.set_title('Fiber Capillary 8, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -268,6 +293,9 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 4, '200 nm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_capillary_8 = np.mean(zoomed_image_9)
+    print("Average Intensity (Capillary 6):", average_intensity_capillary_8)
+    
     # Zoom 10, Fiber Core
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (598, 565)
@@ -276,9 +304,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Core, 50 mins BSA-TR flow')
+    zoomed_image_10 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_10, cmap='viridis')
+    ax.set_title('Fiber Core, 5 minsBSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -292,8 +320,8 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 10, '5 µm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
-
-
+    average_intensity_core = np.mean(zoomed_image_10)
+    print("Average Intensity (Core):", average_intensity_core)
 
 def main():
     fiber_image_path = r'C:\Users\DELL\Documents\2024\RhB_1uM_flow_from_water_fiber_22042024\all_100ms_1_min.tiff'
@@ -309,11 +337,10 @@ def main():
     bar_length_um = 30
     text = '30 um'
     processed_image_with_bar = draw_scale_bar(processed_image_masked, bar_line_position_x, bar_line_position_y, bar_thickness, conversion_factor, bar_length_um, text)
-    brightness_factor = 0.9
+    brightness_factor = 0.03
     processed_image_brightened = adjust_brightness(processed_image_with_bar, brightness_factor)
     output_path = r'C:\Users\DELL\Documents\2024\RhB_1uM_flow_from_water_fiber_22042024\output_All.tiff'
     save_image(processed_image_brightened, output_path)
     show_images(processed_image_brightened)
-
 if __name__ == "__main__":
     main()
