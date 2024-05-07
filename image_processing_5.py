@@ -49,7 +49,7 @@ def save_image(image, output_path):
     image_pil.save(output_path)
 
 def show_images(processed_image):
-    # Zoom 9, Ring
+    # Zoom 11, Ring
     fig, ax = plt.subplots(1, 1, figsize=(10, 5), dpi=600)
     zoom_center = (598, 565)
     zoom_radius = 200
@@ -57,9 +57,9 @@ def show_images(processed_image):
     zoom_xmax = min(processed_image.shape[1], zoom_center[0] + zoom_radius)
     zoom_ymin = max(0, zoom_center[1] - zoom_radius)
     zoom_ymax = min(processed_image.shape[0], zoom_center[1] + zoom_radius)
-    zoomed_image = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
-    im2 = ax.imshow(zoomed_image, cmap='viridis')
-    ax.set_title('Fiber Ring, 50 mins BSA-TR flow')
+    zoomed_image_11 = processed_image[zoom_ymin:zoom_ymax, zoom_xmin:zoom_xmax]
+    im2 = ax.imshow(zoomed_image_11, cmap='viridis')
+    ax.set_title('Fiber Ring, 45 mins BSA-TR flow')
     ax.axis('off')
     cbar2 = fig.colorbar(im2, ax=ax, orientation='vertical')
     cbar2.set_label('Intensity')
@@ -73,6 +73,8 @@ def show_images(processed_image):
     ax.text(bar_line_position_x - bar_length_pixels // 2, bar_line_position_y + 20, '10 µm', color='white', ha='center')
     plt.tight_layout()
     plt.show()
+    average_intensity_ring = np.mean(zoomed_image_11)
+    print("Average Intensity (Ring):", average_intensity_ring)
 
 def main():
     fiber_image_path = r'C:\Users\DELL\Documents\2024\RhB_1uM_flow_from_water_fiber_22042024\all_100ms_1_min.tiff'
@@ -91,11 +93,10 @@ def main():
     bar_length_um = 30
     text = '30 um'
     processed_image_with_bar = draw_scale_bar(processed_image_masked_with_zero_intensity, bar_line_position_x, bar_line_position_y, bar_thickness, conversion_factor, bar_length_um, text)
-    brightness_factor = 0.9
+    brightness_factor = 0.91
     processed_image_brightened = adjust_brightness(processed_image_with_bar, brightness_factor)
     output_path = r'C:\Users\DELL\Documents\2024\RhB_1uM_flow_from_water_fiber_22042024\output_All.tiff'
     save_image(processed_image_brightened, output_path)
     show_images(processed_image_brightened)
-
 if __name__ == "__main__":
     main()
