@@ -199,7 +199,6 @@ def define_cycle_settings():
     num_cycles = len(cycle_settings)
     return cycle_settings, num_cycles
 
-
 def configure_cycle(ser, numerator, target_temperature, stop_temperature, start_time, output_file_path, fiber_temperature_data, ambient_temperature_data):
     print("\nPower Percentage Configuration...")
     power_percentage = int((numerator / 255) * 100)
