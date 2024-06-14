@@ -191,11 +191,14 @@ def read_and_append_data(ser, target_temperature, stop_temperature, numerator, s
 
 def define_cycle_settings():
     cycle_settings = [
-        (10, 10, 20, 0),
-        (1, 20, 0, 0)
+        (255, 25, 25, 0),  # (numerator, target_temperature, stop_temperature, wait_time)
+        (-255, 20, 20, 0),
+        (255, 25, 25, 0),
+        (-255, 20, 20, 0)
     ]
     num_cycles = len(cycle_settings)
     return cycle_settings, num_cycles
+
 
 def configure_cycle(ser, numerator, target_temperature, stop_temperature, start_time, output_file_path, fiber_temperature_data, ambient_temperature_data):
     print("\nPower Percentage Configuration...")
