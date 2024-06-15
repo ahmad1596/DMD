@@ -266,18 +266,14 @@ def plot_concurrency_check(spectra_timestamps, fiber_temperature_timestamps):
     else:
         fiber_temp_intervals = []
         temp_counts = []
-    
     # Convert fiber_temp_intervals from minutes to seconds
     fiber_temp_intervals = [interval * 60 for interval in fiber_temp_intervals]
-
     # Get the current time as the start time
     start_time = datetime.now()
     time_formatter = mdates.DateFormatter('%H:%M:%S')
-
     # Plotting
     fig, ax1 = plt.subplots(figsize=(8, 6), dpi=600)
     ax2 = ax1.twinx()
-    
     # Plot number of temperature readings over time (in seconds)
     ax1.plot([start_time + timedelta(seconds=interval) for interval in fiber_temp_intervals], temp_counts, 'b-', label="Temperature Data Count")
     ax1.set_xlabel('Time')
@@ -285,41 +281,38 @@ def plot_concurrency_check(spectra_timestamps, fiber_temperature_timestamps):
     ax1.tick_params(axis='y', labelcolor='b')
     ax1.xaxis.set_major_formatter(time_formatter)
     ax1.grid(color="gray", linestyle="--", linewidth=0.5)
-    
     # Plot number of spectra recorded over time (in seconds)
     ax2.plot([start_time + timedelta(seconds=interval) for interval in spectra_time_intervals], spectra_counts, 'g-', label="Spectra Count")
     ax2.set_ylabel('Number of Spectra', color='g')
     ax2.tick_params(axis='y', labelcolor='g')
     ax2.grid(color="gray", linestyle="--", linewidth=0.5)
-    
     plt.title('Concurrency Check: Number of Data Points Recorded Over Time')
     fig.tight_layout()
     plt.show()
 
 def plot_temperature_vs_time(fiber_temperature_data, ambient_temperature_data):
     # Extract time and temperature data
-    fiber_time_values, fiber_temperature_values = zip(*fiber_temperature_data)
-    ambient_time_values, ambient_temperature_values = zip(*ambient_temperature_data)
+    fiber_temp_timestamps, fiber_temperatures = zip(*fiber_temperature_data)
+    ambient_temp_timestamps, ambient_temperatures = zip(*ambient_temperature_data)
     # Convert time values to datetime objects
-    fiber_times = [datetime.fromtimestamp(ts) for ts in fiber_time_values]
-    ambient_times = [datetime.fromtimestamp(ts) for ts in ambient_time_values]
-    # Sort the data points by time
-    fiber_sorted_indices = sorted(range(len(fiber_times)), key=lambda k: fiber_times[k])
-    ambient_sorted_indices = sorted(range(len(ambient_times)), key=lambda k: ambient_times[k])
-    sorted_fiber_times = [fiber_times[i] for i in fiber_sorted_indices]
-    sorted_fiber_temperatures = [fiber_temperature_values[i] for i in fiber_sorted_indices]
-    sorted_ambient_times = [ambient_times[i] for i in ambient_sorted_indices]
-    sorted_ambient_temperatures = [ambient_temperature_values[i] for i in ambient_sorted_indices]
+    fiber_temp_times = [datetime.fromtimestamp(ts) for ts in fiber_temp_timestamps]
+    ambient_temp_times = [datetime.fromtimestamp(ts) for ts in ambient_temp_timestamps]
+    # Sort timestamps
+    fiber_temp_times.sort()
+    ambient_temp_times.sort()
+    # Calculate time intervals in seconds
+    fiber_temp_intervals = [(t - fiber_temp_times[0]).total_seconds() for t in fiber_temp_times]
+    ambient_temp_intervals = [(t - ambient_temp_times[0]).total_seconds() for t in ambient_temp_times]
+    # Assuming fiber_temp_intervals need conversion based on your earlier code
+    fiber_temp_intervals = [interval * 60 for interval in fiber_temp_intervals]
+    ambient_temp_intervals = [interval * 60 for interval in ambient_temp_intervals]
     # Get the current time as the start time
     start_time = datetime.now()
     time_formatter = mdates.DateFormatter('%H:%M:%S')
-    # Calculate time intervals in seconds
-    fiber_time_intervals = [(t - sorted_fiber_times[0]).total_seconds() for t in sorted_fiber_times]
-    ambient_time_intervals = [(t - sorted_ambient_times[0]).total_seconds() for t in sorted_ambient_times]
     # Plotting
     fig, ax = plt.subplots(figsize=(8, 6), dpi=600)
-    ax.plot([start_time + timedelta(seconds=interval) for interval in fiber_time_intervals], sorted_fiber_temperatures, 'b-', label='Fiber Temperature')
-    ax.plot([start_time + timedelta(seconds=interval) for interval in ambient_time_intervals], sorted_ambient_temperatures, 'g-', label='Ambient Temperature')
+    ax.plot([start_time + timedelta(seconds=interval) for interval in fiber_temp_intervals], fiber_temperatures, 'b-', label='Fiber Temperature')
+    ax.plot([start_time + timedelta(seconds=interval) for interval in ambient_temp_intervals], ambient_temperatures, 'g-', label='Ambient Temperature')
     ax.set_xlabel('Time')
     ax.set_ylabel('Temperature (°C)')
     ax.set_title('Temperature vs. Time')
@@ -329,6 +322,7 @@ def plot_temperature_vs_time(fiber_temperature_data, ambient_temperature_data):
     ax.xaxis.set_major_formatter(time_formatter)
     plt.tight_layout()
     plt.show()
+
 
 def plot_max_intensity_vs_time(spectra, spectra_timestamps):
     max_intensities = []
@@ -344,7 +338,7 @@ def plot_max_intensity_vs_time(spectra, spectra_timestamps):
     start_time = datetime.now()
     time_formatter = mdates.DateFormatter('%H:%M:%S')
     # Plotting
-    fig, ax = plt.subplots(figsize=(8, 6), dpi=600)
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=600)
     # Plot number of spectra recorded over time (in seconds)
     ax.plot([start_time + timedelta(seconds=interval) for interval in spectra_time_intervals], max_intensities, 'b-', label="Max Intensity")
     ax.set_xlabel('Time')
@@ -356,9 +350,110 @@ def plot_max_intensity_vs_time(spectra, spectra_timestamps):
     plt.title('Max Intensity vs. Time')
     fig.tight_layout()
     plt.show()
+
+def plot_temperature_and_max_intensity_vs_time(fiber_temperature_data, ambient_temperature_data, spectra, spectra_timestamps):
+    # Extract time and temperature data for fiber and ambient temperatures
+    fiber_temp_timestamps, fiber_temperatures = zip(*fiber_temperature_data)
+    ambient_temp_timestamps, ambient_temperatures = zip(*ambient_temperature_data)
+    # Convert timestamps to datetime objects and sort
+    fiber_temp_times = [datetime.fromtimestamp(ts) for ts in fiber_temp_timestamps]
+    ambient_temp_times = [datetime.fromtimestamp(ts) for ts in ambient_temp_timestamps]
+    fiber_temp_times.sort()
+    ambient_temp_times.sort()
+    # Calculate time intervals in seconds for fiber and ambient temperatures
+    fiber_temp_intervals = [(t - fiber_temp_times[0]).total_seconds() for t in fiber_temp_times]
+    ambient_temp_intervals = [(t - ambient_temp_times[0]).total_seconds() for t in ambient_temp_times]
+    fiber_temp_intervals = [interval * 60 for interval in fiber_temp_intervals]
+    ambient_temp_intervals = [interval * 60 for interval in ambient_temp_intervals]
+    # Extract spectra data and timestamps
+    max_intensities = []
+    for wavelengths, spectrum_data in spectra:
+        max_intensity = np.max(spectrum_data[1])
+        max_intensities.append(max_intensity)
+    spectra_times = [datetime.fromtimestamp(ts) for ts in spectra_timestamps]
+    spectra_times.sort()
+    spectra_time_intervals = [(t - spectra_times[0]).total_seconds() for t in spectra_times]
+    # Get the current time as the start time
+    start_time = datetime.now()
+    time_formatter = mdates.DateFormatter('%H:%M:%S')
+    # Plotting
+    fig, ax1 = plt.subplots(figsize=(10, 6), dpi=600)
+    # Plot fiber and ambient temperatures on ax1
+    ax1.plot([start_time + timedelta(seconds=interval) for interval in fiber_temp_intervals], fiber_temperatures, 'b-', label='Fiber Temperature')
+    ax1.plot([start_time + timedelta(seconds=interval) for interval in ambient_temp_intervals], ambient_temperatures, 'g-', label='Ambient Temperature')
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('Temperature (°C)', color='black')
+    ax1.tick_params(axis='y', labelcolor='black')
+    ax1.grid(color='gray', linestyle='--', linewidth=0.5)
+    ax1.legend(loc='upper left')
+    ax1.xaxis.set_major_formatter(time_formatter)
+    # Create ax2 as a twin of ax1 for plotting max intensities
+    ax2 = ax1.twinx()
+    ax2.plot([start_time + timedelta(seconds=interval) for interval in spectra_time_intervals], max_intensities, 'r-', label="Max Intensity")
+    ax2.set_ylabel('Max Intensity (a.u.)', color='red')
+    ax2.tick_params(axis='y', labelcolor='red')
+    ax2.legend(loc='upper right')
+    plt.title('Combined Plot: Temperature vs. Time and Max Intensity vs. Time')
+    fig.tight_layout()
+    plt.show()
     
-def plot_temperature_and_max_intensity_vs_time(fiber_temperature_data)
-    
+def plot_temperature_and_normalized_max_intensity_vs_time(fiber_temperature_data, ambient_temperature_data, spectra, spectra_timestamps):
+    # Extract time and temperature data for fiber and ambient temperatures
+    fiber_temp_timestamps, fiber_temperatures = zip(*fiber_temperature_data)
+    ambient_temp_timestamps, ambient_temperatures = zip(*ambient_temperature_data)
+
+    # Convert timestamps to datetime objects and sort
+    fiber_temp_times = [datetime.fromtimestamp(ts) for ts in fiber_temp_timestamps]
+    ambient_temp_times = [datetime.fromtimestamp(ts) for ts in ambient_temp_timestamps]
+    fiber_temp_times.sort()
+    ambient_temp_times.sort()
+
+    # Calculate time intervals in seconds for fiber and ambient temperatures
+    fiber_temp_intervals = [(t - fiber_temp_times[0]).total_seconds() for t in fiber_temp_times]
+    ambient_temp_intervals = [(t - ambient_temp_times[0]).total_seconds() for t in ambient_temp_times]
+    fiber_temp_intervals = [interval * 60 for interval in fiber_temp_intervals]
+    ambient_temp_intervals = [interval * 60 for interval in ambient_temp_intervals]
+
+    # Extract spectra data and timestamps
+    max_intensities = []
+    for wavelengths, spectrum_data in spectra:
+        max_intensity = np.max(spectrum_data[1])
+        max_intensities.append(max_intensity)
+    spectra_times = [datetime.fromtimestamp(ts) for ts in spectra_timestamps]
+    spectra_times.sort()
+    spectra_time_intervals = [(t - spectra_times[0]).total_seconds() for t in spectra_times]
+
+    # Normalize max intensities
+    normalized_max_intensities = [intensity / (max(max_intensities)) for intensity in max_intensities]
+
+    # Get the current time as the start time
+    start_time = datetime.now()
+    time_formatter = mdates.DateFormatter('%H:%M:%S')
+
+    # Plotting
+    fig, ax1 = plt.subplots(figsize=(10, 6), dpi=600)
+
+    # Plot fiber and ambient temperatures on ax1
+    ax1.plot([start_time + timedelta(seconds=interval) for interval in fiber_temp_intervals], fiber_temperatures, 'b-', label='Fiber Temperature')
+    ax1.plot([start_time + timedelta(seconds=interval) for interval in ambient_temp_intervals], ambient_temperatures, 'g-', label='Ambient Temperature')
+    ax1.set_xlabel('Time')
+    ax1.set_ylabel('Temperature (°C)', color='black')
+    ax1.tick_params(axis='y', labelcolor='black')
+    ax1.grid(color='gray', linestyle='--', linewidth=0.5)
+    ax1.legend(loc='upper left')
+    ax1.xaxis.set_major_formatter(time_formatter)
+
+    # Create ax2 as a twin of ax1 for plotting normalized max intensities
+    ax2 = ax1.twinx()
+    ax2.plot([start_time + timedelta(seconds=interval) for interval in spectra_time_intervals], normalized_max_intensities, 'r-', label="Max Intensity (Normalized)")
+    ax2.set_ylabel('Max Intensity (Normalized)', color='red')
+    ax2.tick_params(axis='y', labelcolor='red')
+    ax2.legend(loc='upper right')
+
+    plt.title('Combined Plot: Temperature vs. Time and Normalized Max Intensity vs. Time')
+    fig.tight_layout()
+    plt.show()
+ 
         
 def main():
     try:
@@ -406,7 +501,7 @@ def main():
         print("Disconnecting serial port...")
         disconnect_serial_port(ser)
 
-        #fiber_temperature_timestamps = [timestamp for timestamp, temp in fiber_temperature_data]
+        fiber_temperature_timestamps = [timestamp for timestamp, temp in fiber_temperature_data]
 
         #print("Plotting temperature data...")
         #plot_temperature_data(fiber_temperature_data, ambient_temperature_data)
@@ -417,8 +512,8 @@ def main():
         #     fig_title = f"Individual Spectrum {i+1}"
         #     plot_spectrum(wavelengths, spectrum_data, fig_title)
         
-        #print("Plotting concurrency check...")
-        #plot_concurrency_check(spectra_timestamps, fiber_temperature_timestamps)
+        print("Plotting concurrency check...")
+        plot_concurrency_check(spectra_timestamps, fiber_temperature_timestamps)
         
         #print("Plotting temperature data...")
         #plot_temperature_vs_time(fiber_temperature_data, ambient_temperature_data)
@@ -426,8 +521,11 @@ def main():
         #print("Plotting max intensity data...")
         #plot_max_intensity_vs_time(spectra, spectra_timestamps)
         
-        #print("Plotting temperature and max intensity data...")
+        print("Plotting temperature and max intensity data...")
+        plot_temperature_and_max_intensity_vs_time(fiber_temperature_data, ambient_temperature_data, spectra, spectra_timestamps)
         
+        print("Plotting temperature and normalized max intensity data...")
+        plot_temperature_and_normalized_max_intensity_vs_time(fiber_temperature_data, ambient_temperature_data, spectra, spectra_timestamps)
     except Exception as e:
         print("An error occurred:", str(e))
 
