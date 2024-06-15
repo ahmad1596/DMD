@@ -423,6 +423,7 @@ def plot_temperature_and_normalized_max_intensity_vs_time(fiber_temperature_data
     normalized_max_intensities = [intensity / max(max_intensities) for intensity in max_intensities]
     # Get the current time as the start time (same for both plots)
     start_time = datetime.now()
+    time_formatter = mdates.DateFormatter('%H:%M:%S')
     # Plotting
     fig, ax1 = plt.subplots(figsize=(10, 6), dpi=600)
     # Plot fiber and ambient temperatures on ax1
@@ -433,6 +434,7 @@ def plot_temperature_and_normalized_max_intensity_vs_time(fiber_temperature_data
     ax1.tick_params(axis='y', labelcolor='black')
     ax1.grid(color='gray', linestyle='--', linewidth=0.5)
     ax1.legend(loc='upper left')
+    ax1.xaxis.set_major_formatter(time_formatter)
     # Create ax2 as a twin of ax1 for plotting normalized max intensities
     ax2 = ax1.twinx()
     ax2.plot([start_time + timedelta(seconds=interval) for interval in spectra_time_intervals], normalized_max_intensities, 'r-', label="Max Intensity (Normalized)")
