@@ -32,7 +32,7 @@ def read_and_append_data(ser, target_temperature, stop_temperature, numerator, s
         elapsed_time = (time.time() - start_time) / 60  # Convert elapsed time to minutes
         if data.startswith('T1;'):
             temperature = float(data.split(';')[2])
-            fiber_temperature_data.append((elapsed_time, temperature))  # Append data to fiber list
+            fiber_temperature_data.append((elapsed_time, temperature))  # 
             with open(output_file_path, 'a') as txt_file:
                 txt_file.write(f"{data}, {elapsed_time:.2f}\n")
 
@@ -93,7 +93,7 @@ def disconnect_serial_port(ser):
 
 def plot_temperature_data(fiber_temperature_data, ambient_temperature_data):
     cmap = plt.get_cmap("tab10")
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(10, 6))
     fig.set_dpi(600)
 
     fiber_time_values, fiber_temperature_values = zip(*fiber_temperature_data)
