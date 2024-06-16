@@ -107,11 +107,12 @@ def save_all_spectra(filename, wavelengths, spectra, timestamps):
 def plot_spectrum(wavelengths, spectrum_data, fig_title):
     print(f"Plotting spectrum with wavelengths shape {wavelengths.shape} and spectrum_data shape {spectrum_data.shape}")
     if spectrum_data.ndim == 2:
-        spectrum_data = spectrum_data[1]
+        spectrum_data = spectrum_data[1] 
     fig, ax = plt.subplots(1, 1, figsize=(8, 6), dpi=600)
     ax.plot(wavelengths, spectrum_data, marker='o', markersize=2, linestyle='-', color='b')
-    ax.set_xlabel('Wavelength')
-    ax.set_ylabel('Intensity')
+    ax.set_xlabel('Wavelength (nm)')
+    ax.set_ylabel('Intensity (a.u)')
+    ax.grid(color="gray", linestyle="--", linewidth=0.5)
     ax.set_title(fig_title)
     plt.tight_layout()
     plt.show()
